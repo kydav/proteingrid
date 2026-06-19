@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/notifications_service.dart';
 import 'protein_log.dart';
 import 'log_repository.dart';
 
@@ -25,9 +26,14 @@ class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
     state = _repo.logsForDay(DateTime.now());
   }
 
-  Future<void> add({required double grams, String? label}) async {
+  Future<void> add({required double grams, String? label, int goal = 150}) async {
     await _repo.add(grams: grams, label: label);
     _load();
+    // Fire goal-hit notification if we just crossed the threshold.
+    final total = state.fold(0.0, (s, l) => s + l.grams);
+    if (total >= goal) {
+      NotificationsService.maybeShowGoalHit();
+    }
   }
 
   Future<void> remove(String id) async {

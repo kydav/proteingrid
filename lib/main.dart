@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quick_actions/quick_actions.dart';
 
+import 'core/notifications_service.dart';
 import 'core/router.dart';
 import 'data/protein_log.dart';
 import 'data/providers.dart';
@@ -12,6 +13,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(ProteinLogAdapter());
   await Hive.openBox<ProteinLog>('protein_logs');
+  await NotificationsService.init();
   runApp(const ProviderScope(child: ProteinPingApp()));
 }
 

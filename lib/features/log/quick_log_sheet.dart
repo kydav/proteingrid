@@ -62,9 +62,10 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
     try {
       final label =
           _labelCtrl.text.trim().isNotEmpty ? _labelCtrl.text.trim() : null;
+      final goal = ref.read(dailyGoalProvider);
       await ref
           .read(todayLogsProvider.notifier)
-          .add(grams: grams, label: label);
+          .add(grams: grams, label: label, goal: goal);
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(true);
     } finally {

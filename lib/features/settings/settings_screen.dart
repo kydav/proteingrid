@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart' show Share;
 
+import '../../core/notifications_service.dart';
+import '../../data/log_repository.dart';
 import '../../data/providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -12,12 +16,27 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _goalCtrl;
+  bool _reminderEnabled = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
+  bool _notifLoaded = false;
 
   @override
   void initState() {
     super.initState();
     final goal = ref.read(dailyGoalProvider);
     _goalCtrl = TextEditingController(text: goal.toString());
+    _loadReminderSettings();
+  }
+
+  Future<void> _loadReminderSettings() async {
+    final settings = await NotificationsService.getReminderSettings();
+    if (mounted) {
+      setState(() {
+        _reminderEnabled = settings.enabled;
+        _reminderTime = settings.time;
+        _notifLoaded = true;
+      });
+    }
   }
 
   @override
@@ -38,6 +57,64 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _toggleReminder(bool enabled) async {
+    if (enabled) {
+      final granted = await NotificationsService.requestPermission();
+      if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Enable notifications in Settings to use reminders.',
+            ),
+          ),
+        );
+        return;
+      }
+      await NotificationsService.scheduleDailyReminder(_reminderTime);
+    } else {
+      await NotificationsService.cancelDailyReminder();
+    }
+    if (mounted) setState(() => _reminderEnabled = enabled);
+  }
+
+  Future<void> _pickReminderTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+    );
+    if (picked != null) {
+      setState(() => _reminderTime = picked);
+      if (_reminderEnabled) {
+        await NotificationsService.scheduleDailyReminder(picked);
+      }
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    final repo = LogRepository();
+    final logs = repo.allLogs();
+    if (logs.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No logs to export.')),
+        );
+      }
+      return;
+    }
+
+    final dateFmt = DateFormat('yyyy-MM-dd');
+    final timeFmt = DateFormat('HH:mm:ss');
+    final buf = StringBuffer('Date,Time,Grams,Label\n');
+    for (final log in logs) {
+      final label = (log.label ?? '').replaceAll(',', ';');
+      buf.writeln(
+        '${dateFmt.format(log.timestamp)},${timeFmt.format(log.timestamp)},${log.grams.toStringAsFixed(1)},$label',
+      );
+    }
+
+    await Share.share(buf.toString(), subject: 'ProteinPing export');
   }
 
   Future<void> _confirmClearToday() async {
@@ -77,13 +154,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text(
-            'Daily protein goal',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 4),
+          // ── Daily goal ──────────────────────────────────────────────────
+          _sectionHeader(context, 'Daily protein goal'),
           Text(
             'How many grams of protein do you aim for each day?',
             style: Theme.of(context)
@@ -107,24 +179,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              FilledButton(
-                onPressed: _saveGoal,
-                child: const Text('Save'),
-              ),
+              FilledButton(onPressed: _saveGoal, child: const Text('Save')),
             ],
           ),
+
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
-          Text(
-            'Quick action shortcuts',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+
+          // ── Notifications ───────────────────────────────────────────────
+          _sectionHeader(context, 'Notifications'),
+          if (_notifLoaded) ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Daily reminder'),
+              subtitle: Text(
+                _reminderEnabled
+                    ? 'Reminds you at ${_reminderTime.format(context)}'
+                    : 'Off',
+              ),
+              value: _reminderEnabled,
+              onChanged: _toggleReminder,
+            ),
+            if (_reminderEnabled)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Reminder time'),
+                trailing: Text(
+                  _reminderTime.format(context),
+                  style: TextStyle(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-          ),
-          const SizedBox(height: 4),
+                onTap: _pickReminderTime,
+              ),
+            const SizedBox(height: 4),
+            Text(
+              'You also receive a notification when you hit your daily goal.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ] else
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+
+          const SizedBox(height: 32),
+          const Divider(),
+          const SizedBox(height: 16),
+
+          // ── Quick actions ───────────────────────────────────────────────
+          _sectionHeader(context, 'Quick action shortcuts'),
           Text(
-            'Long-press the ProteinPing app icon on your home screen to instantly log common amounts without opening the app.',
+            'Long-press the ProteinPing app icon on your home screen to instantly log common amounts.',
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
@@ -132,38 +245,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           ...[
-            ('log_30g', 'Log 30g'),
-            ('log_40g', 'Log 40g'),
-            ('log_50g', 'Log 50g'),
-            ('log_custom', 'Custom amount'),
+            'Log 30g',
+            'Log 40g',
+            'Log 50g',
+            'Custom amount',
           ].map(
-            (item) => ListTile(
+            (label) => ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: cs.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.flash_on_rounded,
-                  color: cs.onPrimaryContainer,
-                  size: 20,
-                ),
+              dense: true,
+              leading: Icon(
+                Icons.flash_on_rounded,
+                color: cs.primary,
+                size: 20,
               ),
-              title: Text(item.$2),
+              title: Text(label),
             ),
           ),
+
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
-          Text(
-            'Data',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+
+          // ── Data ────────────────────────────────────────────────────────
+          _sectionHeader(context, 'Data'),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _exportCsv,
+            icon: const Icon(Icons.download_outlined),
+            label: const Text('Export all logs as CSV'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -176,8 +288,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               minimumSize: const Size.fromHeight(48),
             ),
           ),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
+
+  Widget _sectionHeader(BuildContext context, String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      );
 }
