@@ -98,6 +98,13 @@ jobs:
           </plist>
           EOF
 
+          # Patch Runner target configs in pbxproj to use manual signing.
+          # Only Runner configs have DEVELOPMENT_TEAM set; RunnerTests and SPM
+          # targets do not, so this sed is safe to run globally.
+          sed -i "" \
+            "s/DEVELOPMENT_TEAM = ${TEAM_ID};/DEVELOPMENT_TEAM = ${TEAM_ID};\n\t\t\t\tCODE_SIGN_STYLE = Manual;\n\t\t\t\tPROVISIONING_PROFILE = ${PROFILE_UUID};/g" \
+            ios/Runner.xcodeproj/project.pbxproj
+
           # Build Flutter app without signing, then archive+export with manual signing
           flutter build ios --release --no-codesign
 
@@ -106,11 +113,7 @@ jobs:
             -scheme Runner \
             -configuration Release \
             -archivePath /tmp/Runner.xcarchive \
-            CODE_SIGN_STYLE=Manual \
-            "CODE_SIGN_IDENTITY=iPhone Distribution" \
-            "PROVISIONING_PROFILE=${PROFILE_UUID}" \
-            "DEVELOPMENT_TEAM=${TEAM_ID}" \
-            -allowProvisioningUpdates
+            "CODE_SIGN_IDENTITY=iPhone Distribution"
 
           xcodebuild -exportArchive \
             -archivePath /tmp/Runner.xcarchive \
