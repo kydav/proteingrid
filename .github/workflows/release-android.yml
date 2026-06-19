@@ -51,7 +51,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.auaha.proteingrid
+          packageName: app.auaha.proteingrid
           releaseFiles: build/app/outputs/bundle/release/*.aab
           track: internal
           status: completed
