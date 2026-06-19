@@ -97,7 +97,25 @@ jobs:
           </dict>
           </plist>
           EOF
-          flutter build ipa --release --export-options-plist=/tmp/ExportOptions.plist
+
+          # Build Flutter app without signing, then archive+export with manual signing
+          flutter build ios --release --no-codesign
+
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath /tmp/Runner.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            "CODE_SIGN_IDENTITY=iPhone Distribution" \
+            "PROVISIONING_PROFILE=${PROFILE_UUID}" \
+            "DEVELOPMENT_TEAM=${TEAM_ID}" \
+            -allowProvisioningUpdates
+
+          xcodebuild -exportArchive \
+            -archivePath /tmp/Runner.xcarchive \
+            -exportPath /tmp/ipa-export \
+            -exportOptionsPlist /tmp/ExportOptions.plist
 
       - name: Upload to TestFlight
         if: ${{ !inputs.skip_upload }}
@@ -107,7 +125,7 @@ jobs:
         run: |
           xcrun altool --upload-app \
             --type ios \
-            --file "$(ls build/ios/ipa/*.ipa | head -1)" \
+            --file "$(ls /tmp/ipa-export/*.ipa | head -1)" \
             --apiKey "$ASC_KEY_ID" \
             --apiIssuer "$ASC_ISSUER_ID"
 
