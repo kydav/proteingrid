@@ -5,6 +5,7 @@ import 'package:quick_actions/quick_actions.dart';
 
 import 'core/notifications_service.dart';
 import 'core/router.dart';
+import 'core/theme.dart';
 import 'data/protein_log.dart';
 import 'data/providers.dart';
 
@@ -64,19 +65,9 @@ class _ProteinPingAppState extends ConsumerState<ProteinPingApp> {
       title: 'ProteinPing',
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2ECC71),
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF27AE60),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: arcadeTheme(),
+      darkTheme: arcadeTheme(),
+      themeMode: ThemeMode.dark,
       onGenerateRoute: ProteinPingRouter.onGenerateRoute,
       initialRoute: '/',
     );

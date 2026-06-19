@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/theme.dart';
 import '../../data/protein_log.dart';
 import '../../data/providers.dart';
 import '../log/quick_log_sheet.dart';
@@ -50,9 +52,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: cs.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text(
-          'ProteinPing',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          'PROTEIN\nPING',
+          style: GoogleFonts.pressStart2p(
+            fontSize: 11,
+            color: kNeonGreen,
+            height: 1.5,
+            shadows: neonGlow(kNeonGreen, intensity: 0.9)
+                .map((s) => Shadow(color: s.color, blurRadius: s.blurRadius))
+                .toList(),
+          ),
         ),
         actions: [
           IconButton(
@@ -72,18 +81,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 children: [
                   Text(
-                    "Today's log",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    "TODAY'S LOG",
+                    style: GoogleFonts.pressStart2p(
+                      fontSize: 9,
+                      color: kNeonGreen,
+                      letterSpacing: 1,
+                    ),
                   ),
                   const Spacer(),
                   if (logs.isNotEmpty)
                     Text(
                       '${logs.length} entries',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
+                      style: GoogleFonts.orbitron(
+                        fontSize: 9,
+                        color: cs.onSurfaceVariant,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                 ],
               ),
@@ -152,12 +165,19 @@ class _ProgressRingCard extends StatelessWidget {
     final progress = (total / goal).clamp(0.0, 1.0);
     final isGoalHit = total >= goal;
 
+    final ringColor = isGoalHit ? cs.tertiary : cs.primary;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
       padding: const EdgeInsets.symmetric(vertical: 28),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: ringColor.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: neonGlow(ringColor, intensity: 0.25),
       ),
       child: Column(
         children: [
@@ -172,8 +192,7 @@ class _ProgressRingCard extends StatelessWidget {
                   painter: _RingPainter(
                     progress: progress,
                     trackColor: cs.surfaceContainerHighest,
-                    progressColor:
-                        isGoalHit ? cs.tertiary : cs.primary,
+                    progressColor: ringColor,
                   ),
                 ),
                 Column(
@@ -181,17 +200,24 @@ class _ProgressRingCard extends StatelessWidget {
                   children: [
                     Text(
                       '${total.toStringAsFixed(0)}g',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: isGoalHit ? cs.tertiary : cs.primary,
+                      style: GoogleFonts.pressStart2p(
+                        fontSize: 28,
+                        color: ringColor,
+                        shadows: neonGlow(ringColor, intensity: 0.9)
+                            .map((s) => Shadow(
+                                  color: s.color,
+                                  blurRadius: s.blurRadius,
+                                ))
+                            .toList(),
                       ),
                     ),
+                    const SizedBox(height: 6),
                     Text(
-                      'of ${goal}g', // ignore: unnecessary_string_interpolations
-                      style: TextStyle(
-                        fontSize: 13,
+                      'of ${goal}g',
+                      style: GoogleFonts.orbitron(
+                        fontSize: 11,
                         color: cs.onSurfaceVariant,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -200,27 +226,33 @@ class _ProgressRingCard extends StatelessWidget {
             ),
           ),
           if (isGoalHit) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_rounded,
-                    color: cs.tertiary, size: 18),
-                const SizedBox(width: 6),
+                Icon(Icons.check_circle_rounded, color: cs.tertiary, size: 16),
+                const SizedBox(width: 8),
                 Text(
-                  'Goal hit!',
-                  style: TextStyle(
+                  'GOAL HIT!',
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: 10,
                     color: cs.tertiary,
-                    fontWeight: FontWeight.w600,
+                    shadows: neonGlow(cs.tertiary, intensity: 0.9)
+                        .map((s) => Shadow(color: s.color, blurRadius: s.blurRadius))
+                        .toList(),
                   ),
                 ),
               ],
             ),
           ] else ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               '${(goal - total).ceil()}g remaining',
-              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+              style: GoogleFonts.orbitron(
+                fontSize: 10,
+                color: cs.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
             ),
           ],
         ],
@@ -253,6 +285,21 @@ class _RingPainter extends CustomPainter {
     canvas.drawCircle(center, radius, trackPaint);
 
     if (progress > 0) {
+      // Glow pass
+      final glowPaint = Paint()
+        ..color = progressColor.withValues(alpha: 0.45)
+        ..strokeWidth = strokeWidth + 8
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        2 * math.pi * progress,
+        false,
+        glowPaint,
+      );
+      // Sharp arc on top
       final progressPaint = Paint()
         ..color = progressColor
         ..strokeWidth = strokeWidth
@@ -303,38 +350,69 @@ class _LogTile extends ConsumerWidget {
         color: cs.errorContainer,
         child: Icon(Icons.delete_outline, color: cs.onErrorContainer),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-        leading: Container(
-          width: 44,
-          height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: cs.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
+            color: cs.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: cs.outline, width: 1),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            log.grams.toStringAsFixed(0),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: cs.onPrimaryContainer,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        title: Text(
-          log.label ?? '${log.grams.toStringAsFixed(0)}g protein',
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(
-          time,
-          style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
-        ),
-        trailing: Text(
-          '${log.grams.toStringAsFixed(0)}g',
-          style: TextStyle(
-            color: cs.primary,
-            fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: neonGlow(cs.primary, intensity: 0.35),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  log.grams.toStringAsFixed(0),
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: 10,
+                    color: cs.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      log.label ?? '${log.grams.toStringAsFixed(0)}g protein',
+                      style: GoogleFonts.orbitron(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      time,
+                      style: GoogleFonts.orbitron(
+                        fontSize: 9,
+                        color: cs.onSurfaceVariant,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${log.grams.toStringAsFixed(0)}g',
+                style: GoogleFonts.orbitron(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: cs.primary,
+                ),
+              ),
+            ],
           ),
         ),
       ),
