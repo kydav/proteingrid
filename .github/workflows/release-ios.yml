@@ -113,7 +113,6 @@ jobs:
             -scheme Runner \
             -configuration Release \
             -archivePath /tmp/Runner.xcarchive \
-            "CODE_SIGN_IDENTITY=iPhone Distribution" \
             "DEVELOPMENT_TEAM=${TEAM_ID}"
 
           xcodebuild -exportArchive \
