@@ -39,7 +39,7 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
       if (shortcutType == 'log_30g') grams = 30;
       if (shortcutType == 'log_40g') grams = 40;
       if (shortcutType == 'log_50g') grams = 50;
-      if (shortcutType == 'log_custom') grams = 0; // 0 signals open custom entry
+      if (shortcutType == 'log_custom') grams = 0;
 
       if (grams != null) {
         ref.read(pendingQuickActionGramsProvider.notifier).state = grams;
@@ -47,13 +47,13 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
     });
 
     quickActions.setShortcutItems(const [
-      ShortcutItem(type: 'log_30g', localizedTitle: 'Log 30g', icon: 'AppIcon'),
-      ShortcutItem(type: 'log_40g', localizedTitle: 'Log 40g', icon: 'AppIcon'),
-      ShortcutItem(type: 'log_50g', localizedTitle: 'Log 50g', icon: 'AppIcon'),
+      ShortcutItem(type: 'log_30g', localizedTitle: 'Log 30g', icon: 'egg'),
+      ShortcutItem(type: 'log_40g', localizedTitle: 'Log 40g', icon: 'shake'),
+      ShortcutItem(type: 'log_50g', localizedTitle: 'Log 50g', icon: 'chicken'),
       ShortcutItem(
         type: 'log_custom',
         localizedTitle: 'Custom amount',
-        icon: 'AppIcon',
+        icon: 'plus',
       ),
     ]);
   }
