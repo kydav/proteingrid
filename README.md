@@ -1,4 +1,4 @@
-# proteinping
+# proteingrid
 
 A new Flutter project.
 

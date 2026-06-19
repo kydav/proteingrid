@@ -6,18 +6,18 @@
     "configurations": [
     
         {
-            "name": "proteinping",
+            "name": "proteingrid",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "proteinping (profile mode)",
+            "name": "proteingrid (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "proteinping (release mode)",
+            "name": "proteingrid (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

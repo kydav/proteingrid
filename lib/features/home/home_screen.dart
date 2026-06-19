@@ -53,7 +53,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(
-          'PROTEIN\nPING',
+          'PROTEIN\nGRID',
           style: GoogleFonts.pressStart2p(
             fontSize: 11,
             color: kNeonGreen,
@@ -173,10 +173,7 @@ class _ProgressRingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: ringColor.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
+        border: Border.all(color: ringColor.withValues(alpha: 0.4), width: 1.5),
         boxShadow: neonGlow(ringColor, intensity: 0.25),
       ),
       child: Column(
@@ -204,10 +201,12 @@ class _ProgressRingCard extends StatelessWidget {
                         fontSize: 28,
                         color: ringColor,
                         shadows: neonGlow(ringColor, intensity: 0.9)
-                            .map((s) => Shadow(
-                                  color: s.color,
-                                  blurRadius: s.blurRadius,
-                                ))
+                            .map(
+                              (s) => Shadow(
+                                color: s.color,
+                                blurRadius: s.blurRadius,
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -238,7 +237,10 @@ class _ProgressRingCard extends StatelessWidget {
                     fontSize: 10,
                     color: cs.tertiary,
                     shadows: neonGlow(cs.tertiary, intensity: 0.9)
-                        .map((s) => Shadow(color: s.color, blurRadius: s.blurRadius))
+                        .map(
+                          (s) =>
+                              Shadow(color: s.color, blurRadius: s.blurRadius),
+                        )
                         .toList(),
                   ),
                 ),
@@ -317,8 +319,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress ||
-      old.progressColor != progressColor;
+      old.progress != progress || old.progressColor != progressColor;
 }
 
 // ── Log tile ──────────────────────────────────────────────────────────────────
