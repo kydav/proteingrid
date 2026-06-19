@@ -1,4 +1,4 @@
-package com.auaha.proteinping
+package app.auaha.proteingrid
 
 import io.flutter.embedding.android.FlutterActivity
 

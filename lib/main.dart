@@ -15,17 +15,17 @@ void main() async {
   Hive.registerAdapter(ProteinLogAdapter());
   await Hive.openBox<ProteinLog>('protein_logs');
   await NotificationsService.init();
-  runApp(const ProviderScope(child: ProteinPingApp()));
+  runApp(const ProviderScope(child: ProteinGridApp()));
 }
 
-class ProteinPingApp extends ConsumerStatefulWidget {
-  const ProteinPingApp({super.key});
+class ProteinGridApp extends ConsumerStatefulWidget {
+  const ProteinGridApp({super.key});
 
   @override
-  ConsumerState<ProteinPingApp> createState() => _ProteinPingAppState();
+  ConsumerState<ProteinGridApp> createState() => _ProteinGridAppState();
 }
 
-class _ProteinPingAppState extends ConsumerState<ProteinPingApp> {
+class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
   @override
   void initState() {
     super.initState();
@@ -62,13 +62,13 @@ class _ProteinPingAppState extends ConsumerState<ProteinPingApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ProteinPing',
+      title: 'ProteinGrid',
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       theme: arcadeTheme(),
       darkTheme: arcadeTheme(),
       themeMode: ThemeMode.dark,
-      onGenerateRoute: ProteinPingRouter.onGenerateRoute,
+      onGenerateRoute: ProteinGridRouter.onGenerateRoute,
       initialRoute: '/',
     );
   }

@@ -114,7 +114,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     }
 
-    await Share.share(buf.toString(), subject: 'ProteinPing export');
+    await Share.share(buf.toString(), subject: 'ProteinGrid export');
   }
 
   Future<void> _confirmClearToday() async {
@@ -237,7 +237,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // ── Quick actions ───────────────────────────────────────────────
           _sectionHeader(context, 'Quick action shortcuts'),
           Text(
-            'Long-press the ProteinPing app icon on your home screen to instantly log common amounts.',
+            'Long-press the ProteinGrid app icon on your home screen to instantly log common amounts.',
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
