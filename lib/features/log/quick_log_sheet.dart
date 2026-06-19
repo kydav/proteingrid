@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/providers.dart';
+import 'package:proteingrid/data/providers.dart';
 
 /// Shows the quick-log bottom sheet. Returns true if a log was saved.
 Future<bool> showQuickLogSheet(
@@ -60,13 +60,14 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
     if (_saving) return;
     setState(() => _saving = true);
     try {
-      final label =
-          _labelCtrl.text.trim().isNotEmpty ? _labelCtrl.text.trim() : null;
+      final label = _labelCtrl.text.trim().isNotEmpty
+          ? _labelCtrl.text.trim()
+          : null;
       final goal = ref.read(dailyGoalProvider);
       await ref
           .read(todayLogsProvider.notifier)
           .add(grams: grams, label: label, goal: goal);
-      HapticFeedback.mediumImpact();
+      await HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(true);
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -105,18 +106,16 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
           ),
           Text(
             'Log protein',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             'How much protein are you logging?',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
 
@@ -200,10 +199,9 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
             const SizedBox(height: 20),
             Text(
               'Recent',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelMedium
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Wrap(

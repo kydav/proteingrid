@@ -66,7 +66,6 @@ class NotificationsService {
         android: AndroidNotificationDetails(
           'daily_reminder',
           'Daily reminder',
-          importance: Importance.defaultImportance,
         ),
         iOS: DarwinNotificationDetails(),
       ),

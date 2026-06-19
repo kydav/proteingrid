@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/theme.dart';
-import '../../data/protein_log.dart';
-import '../../data/providers.dart';
-import '../log/quick_log_sheet.dart';
+import 'package:proteingrid/core/theme.dart';
+import 'package:proteingrid/data/protein_log.dart';
+import 'package:proteingrid/data/providers.dart';
+import 'package:proteingrid/features/log/quick_log_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -357,7 +357,7 @@ class _LogTile extends ConsumerWidget {
           decoration: BoxDecoration(
             color: cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: cs.outline, width: 1),
+            border: Border.all(color: cs.outline),
           ),
           child: Row(
             children: [

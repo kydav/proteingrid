@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../data/protein_log.dart';
-import '../../data/providers.dart';
-import '../../data/stats_providers.dart';
+import 'package:proteingrid/data/protein_log.dart';
+import 'package:proteingrid/data/providers.dart';
+import 'package:proteingrid/data/stats_providers.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});

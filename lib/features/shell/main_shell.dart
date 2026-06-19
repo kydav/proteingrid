@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../history/history_screen.dart';
-import '../home/home_screen.dart';
+import 'package:proteingrid/features/history/history_screen.dart';
+import 'package:proteingrid/features/home/home_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});

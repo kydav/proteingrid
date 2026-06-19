@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/data/log_repository.dart';
+import 'package:proteingrid/data/protein_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/notifications_service.dart';
-import 'protein_log.dart';
-import 'log_repository.dart';
 
 const _goalKey = 'daily_goal_grams';
 const _defaultGoal = 150;
@@ -12,8 +12,8 @@ final logRepositoryProvider = Provider<LogRepository>((_) => LogRepository());
 // Notifier for the today's log list — call .refresh() to trigger rebuild.
 final todayLogsProvider =
     StateNotifierProvider<TodayLogsNotifier, List<ProteinLog>>((ref) {
-  return TodayLogsNotifier(ref.read(logRepositoryProvider));
-});
+      return TodayLogsNotifier(ref.read(logRepositoryProvider));
+    });
 
 class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
   TodayLogsNotifier(this._repo) : super([]) {
@@ -26,13 +26,17 @@ class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
     state = _repo.logsForDay(DateTime.now());
   }
 
-  Future<void> add({required double grams, String? label, int goal = 150}) async {
+  Future<void> add({
+    required double grams,
+    String? label,
+    int goal = 150,
+  }) async {
     await _repo.add(grams: grams, label: label);
     _load();
     // Fire goal-hit notification if we just crossed the threshold.
     final total = state.fold(0.0, (s, l) => s + l.grams);
     if (total >= goal) {
-      NotificationsService.maybeShowGoalHit();
+      await NotificationsService.maybeShowGoalHit();
     }
   }
 
@@ -48,8 +52,7 @@ final todayTotalProvider = Provider<double>((ref) {
   return ref.watch(todayLogsProvider).fold(0, (sum, l) => sum + l.grams);
 });
 
-final dailyGoalProvider =
-    StateNotifierProvider<DailyGoalNotifier, int>((ref) {
+final dailyGoalProvider = StateNotifierProvider<DailyGoalNotifier, int>((ref) {
   return DailyGoalNotifier();
 });
 

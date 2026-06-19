@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'providers.dart';
+import 'package:proteingrid/data/providers.dart';
 
 // Returns totals for each of the last 7 days, index 0 = oldest, 6 = today.
 final weeklyTotalsProvider = Provider<List<({DateTime day, double total})>>((ref) {

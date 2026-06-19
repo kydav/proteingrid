@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:proteingrid/data/protein_log.dart';
 import 'package:uuid/uuid.dart';
-import 'protein_log.dart';
 
 const _boxName = 'protein_logs';
 const _uuid = Uuid();
@@ -24,7 +24,7 @@ class LogRepository {
     final log = ProteinLog(
       id: _uuid.v4(),
       grams: grams,
-      label: label?.trim().isNotEmpty == true ? label!.trim() : null,
+      label: label?.trim().isNotEmpty ?? false ? label!.trim() : null,
       timestamp: DateTime.now(),
     );
     await _box.put(log.id, log);

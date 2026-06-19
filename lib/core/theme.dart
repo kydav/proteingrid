@@ -90,17 +90,17 @@ ThemeData arcadeTheme() {
       fontSize: 11, color: kNeonGreen,
     ),
     bodySmall: GoogleFonts.orbitron(
-      fontSize: 10, color: Color(0xFF00CC10),
+      fontSize: 10, color: const Color(0xFF00CC10),
     ),
     labelLarge: GoogleFonts.orbitron(
       fontSize: 11, fontWeight: FontWeight.w700,
       color: kNeonGreen, letterSpacing: 1,
     ),
     labelMedium: GoogleFonts.orbitron(
-      fontSize: 10, color: Color(0xFF00CC10), letterSpacing: 0.5,
+      fontSize: 10, color: const Color(0xFF00CC10), letterSpacing: 0.5,
     ),
     labelSmall: GoogleFonts.orbitron(
-      fontSize: 9, color: Color(0xFF00CC10),
+      fontSize: 9, color: const Color(0xFF00CC10),
     ),
   );
 
@@ -192,10 +192,10 @@ ThemeData arcadeTheme() {
         borderSide: const BorderSide(color: kNeonGreen, width: 2),
       ),
       labelStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: Color(0xFF00CC10),
+        fontSize: 10, color: const Color(0xFF00CC10),
       ),
       hintStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: Color(0xFF1A5C12),
+        fontSize: 10, color: const Color(0xFF1A5C12),
       ),
       suffixStyle: GoogleFonts.orbitron(
         fontSize: 10, color: kNeonGreen,
@@ -212,7 +212,7 @@ ThemeData arcadeTheme() {
         borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
     ),
-    listTileTheme: ListTileThemeData(
+    listTileTheme: const ListTileThemeData(
       iconColor: kNeonGreen,
       textColor: kNeonGreen,
       tileColor: Colors.transparent,
@@ -242,7 +242,7 @@ ThemeData arcadeTheme() {
         fontSize: 12, color: kNeonGreen, height: 1.6,
       ),
       contentTextStyle: GoogleFonts.orbitron(
-        fontSize: 11, color: Color(0xFF00CC10),
+        fontSize: 11, color: const Color(0xFF00CC10),
       ),
     ),
     switchTheme: SwitchThemeData(
@@ -256,10 +256,10 @@ ThemeData arcadeTheme() {
       ),
     ),
     iconTheme: const IconThemeData(color: kNeonGreen),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: kNeonGreen,
       foregroundColor: kArcadeBg,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(6)),
       ),
     ),

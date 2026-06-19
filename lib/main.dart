@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/core/router.dart';
+import 'package:proteingrid/core/theme.dart';
+import 'package:proteingrid/data/protein_log.dart';
+import 'package:proteingrid/data/providers.dart';
 import 'package:quick_actions/quick_actions.dart';
-
-import 'core/notifications_service.dart';
-import 'core/router.dart';
-import 'core/theme.dart';
-import 'data/protein_log.dart';
-import 'data/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

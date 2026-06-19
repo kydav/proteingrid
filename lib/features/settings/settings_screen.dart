@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/data/log_repository.dart';
+import 'package:proteingrid/data/providers.dart';
 import 'package:share_plus/share_plus.dart' show Share;
-
-import '../../core/notifications_service.dart';
-import '../../data/log_repository.dart';
-import '../../data/providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -137,7 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
-    if (confirmed == true && mounted) {
+    if ((confirmed ?? false) && mounted) {
       final logs = ref.read(todayLogsProvider);
       for (final log in logs) {
         await ref.read(todayLogsProvider.notifier).remove(log.id);
