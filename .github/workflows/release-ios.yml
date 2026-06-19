@@ -17,6 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26"
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.44.0"
@@ -30,108 +34,58 @@ jobs:
         env:
           CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
         run: |
-          CERT_PATH=$RUNNER_TEMP/dist_cert.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          CERT_PATH=$RUNNER_TEMP/distribution.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           echo -n "$CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
 
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security create-keychain -p "" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" \
-            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: \
-            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-      - name: Import provisioning profile
+      - name: Install provisioning profile
         env:
           PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
         run: |
           PP_PATH=$RUNNER_TEMP/profile.mobileprovision
           echo -n "$PROFILE_BASE64" | base64 --decode -o "$PP_PATH"
-          UUID=$(security cms -D -i "$PP_PATH" | plutil -extract UUID raw -)
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/${UUID}.mobileprovision
-          echo "PROFILE_UUID=$UUID" >> $GITHUB_ENV
-
-      - name: Set up App Store Connect API key
-        env:
-          ASC_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
-          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-        run: |
-          mkdir -p ~/.private_keys
-          echo -n "$ASC_KEY_BASE64" | base64 --decode \
-            > ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+          cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
 
       - name: Build IPA
-        env:
-          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          cat > /tmp/ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>teamID</key>
-              <string>${TEAM_ID}</string>
-              <key>provisioningProfiles</key>
-              <dict>
-                  <key>app.auaha.proteingrid</key>
-                  <string>${PROFILE_UUID}</string>
-              </dict>
-              <key>uploadBitcode</key>
-              <false/>
-              <key>compileBitcode</key>
-              <false/>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>thinning</key>
-              <string>&lt;none&gt;</string>
-          </dict>
-          </plist>
-          EOF
-
-          # Patch Runner target configs in pbxproj to use manual signing.
-          # Only Runner configs have DEVELOPMENT_TEAM set; RunnerTests and SPM
-          # targets do not, so this sed is safe to run globally.
-          sed -i "" \
-            "s/DEVELOPMENT_TEAM = ${TEAM_ID};/DEVELOPMENT_TEAM = ${TEAM_ID};\n\t\t\t\tCODE_SIGN_STYLE = Manual;\n\t\t\t\tPROVISIONING_PROFILE = ${PROFILE_UUID};/g" \
-            ios/Runner.xcodeproj/project.pbxproj
-
-          # Build Flutter app without signing, then archive+export with manual signing
-          flutter build ios --release --no-codesign
-
-          xcodebuild archive \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath /tmp/Runner.xcarchive \
-            "DEVELOPMENT_TEAM=${TEAM_ID}"
-
-          xcodebuild -exportArchive \
-            -archivePath /tmp/Runner.xcarchive \
-            -exportPath /tmp/ipa-export \
-            -exportOptionsPlist /tmp/ExportOptions.plist
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist \
+            --build-number=${{ github.run_number }} \
+            --verbose 2>&1 | tail -100
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            find /var/folders -name '*.xcactivitylog' 2>/dev/null | sort -t/ -k7 -r | head -1 | xargs gunzip -c 2>/dev/null | strings | grep -A5 "error:" | head -80 || true
+            exit 1
+          fi
 
       - name: Upload to TestFlight
         if: ${{ !inputs.skip_upload }}
         env:
-          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
         run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo -n "$KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_${KEY_ID}.p8
+
+          IPA_PATH=$(find build -name '*.ipa' | head -1)
+          echo "IPA found at: $IPA_PATH"
+          if [ -z "$IPA_PATH" ]; then echo "ERROR: no IPA found"; find build -type f | head -30; exit 1; fi
+
           xcrun altool --upload-app \
             --type ios \
-            --file "$(ls /tmp/ipa-export/*.ipa | head -1)" \
-            --apiKey "$ASC_KEY_ID" \
-            --apiIssuer "$ASC_ISSUER_ID"
+            --file "$IPA_PATH" \
+            --apiKey "$KEY_ID" \
+            --apiIssuer "$ISSUER_ID"
 
-      - name: Clean up keychain
+      - name: Remove signing keychain
         if: always()
-        run: security delete-keychain $RUNNER_TEMP/signing.keychain-db || true
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
