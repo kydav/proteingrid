@@ -4,8 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-// TODO: replace with your RevenueCat API key from the dashboard
-const _rcApiKey = 'appl_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+const _rcApiKey = 'appl_cHSXBAlGposupBWyTsMCVtHiusw';
 
 const _watchEntitlement = 'watch_access';
 
