@@ -18,6 +18,7 @@ dependencies:
   intl: ^0.20.2
   quick_actions: ^1.0.7
   share_plus: ^10.1.4
+  purchases_flutter: ^8.0.0
   shared_preferences: ^2.3.3
   timezone: ^0.9.4
   uuid: ^4.5.1
