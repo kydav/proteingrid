@@ -6,7 +6,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 const _rcApiKey = 'appl_cHSXBAlGposupBWyTsMCVtHiusw';
 
-const _watchEntitlement = 'watch_access';
+const _watchEntitlement = 'protein_grid_pro';
 
 Future<void> initPurchases() async {
   if (!Platform.isIOS) return;

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -66,9 +68,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (!granted && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Enable notifications in Settings to use reminders.',
-            ),
+            content: Text('Enable notifications in Settings to use reminders.'),
           ),
         );
         return;
@@ -98,9 +98,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final logs = repo.allLogs();
     if (logs.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No logs to export.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No logs to export.')));
       }
       return;
     }
@@ -159,10 +159,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _sectionHeader(context, 'Daily protein goal'),
           Text(
             'How many grams of protein do you aim for each day?',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           Row(
@@ -218,10 +217,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 4),
             Text(
               'You also receive a notification when you hit your daily goal.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ] else
             const Center(
@@ -239,18 +237,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _sectionHeader(context, 'Quick action shortcuts'),
           Text(
             'Long-press the ProteinGrid app icon on your home screen to instantly log common amounts.',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: cs.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          ...[
-            'Log 30g',
-            'Log 40g',
-            'Log 50g',
-            'Custom amount',
-          ].map(
+          ...['Log 30g', 'Log 40g', 'Log 50g', 'Custom amount'].map(
             (label) => ListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -266,14 +258,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
+          if (Platform.isIOS) ...[
+            // ── Apple Watch ─────────────────────────────────────────────────
+            _sectionHeader(context, 'Apple Watch'),
+            const _WatchSection(),
 
-          // ── Apple Watch ─────────────────────────────────────────────────
-          _sectionHeader(context, 'Apple Watch'),
-          const _WatchSection(),
-
-          const SizedBox(height: 32),
-          const Divider(),
-          const SizedBox(height: 16),
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 16),
+          ],
 
           // ── Data ────────────────────────────────────────────────────────
           _sectionHeader(context, 'Data'),
@@ -304,14 +297,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _sectionHeader(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 4),
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Text(
+      text,
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    ),
+  );
 }
 
 class _WatchSection extends ConsumerWidget {
