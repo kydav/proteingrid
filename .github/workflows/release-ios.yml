@@ -72,8 +72,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
-            MARKETING_VERSION=$BUILD_NAME \
-            ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=YES
+            MARKETING_VERSION=$BUILD_NAME
 
       - name: Package IPA
         run: |
