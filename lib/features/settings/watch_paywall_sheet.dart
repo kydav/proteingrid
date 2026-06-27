@@ -7,6 +7,9 @@ import 'package:proteingrid/core/theme.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 Future<void> showWatchPaywallSheet(BuildContext context) {
+  // Capture messenger from the parent scaffold before the modal opens so
+  // snackbars appear above the bottom sheet, not behind it.
+  final messenger = ScaffoldMessenger.of(context);
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -15,12 +18,13 @@ Future<void> showWatchPaywallSheet(BuildContext context) {
     shape: const RoundedRectangleBorder(
       // borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
     ),
-    builder: (_) => const _WatchPaywallSheet(),
+    builder: (_) => _WatchPaywallSheet(messenger: messenger),
   );
 }
 
 class _WatchPaywallSheet extends StatefulWidget {
-  const _WatchPaywallSheet();
+  const _WatchPaywallSheet({required this.messenger});
+  final ScaffoldMessengerState messenger;
 
   @override
   State<_WatchPaywallSheet> createState() => _WatchPaywallSheetState();
@@ -57,10 +61,8 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
   Future<void> _purchase() async {
     if (_purchasing) return;
     if (_package == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Product not available yet — check back soon.'),
-        ),
+      widget.messenger.showSnackBar(
+        const SnackBar(content: Text('Product not available yet — check back soon.')),
       );
       return;
     }
@@ -71,9 +73,9 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } on PurchasesErrorCode catch (e) {
       if (e != PurchasesErrorCode.purchaseCancelledError && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Purchase failed: $e')));
+        widget.messenger.showSnackBar(
+          SnackBar(content: Text('Purchase failed: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
@@ -89,18 +91,16 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
         if (info.entitlements.active.containsKey('protein_grid_pro')) {
           Navigator.of(context).pop(true);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No Watch purchase found to restore.'),
-            ),
+          widget.messenger.showSnackBar(
+            const SnackBar(content: Text('No Watch purchase found to restore.')),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+        widget.messenger.showSnackBar(
+          SnackBar(content: Text('Restore failed: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _restoring = false);
