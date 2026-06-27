@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/core/theme.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
+import 'package:proteingrid/data/stats_providers.dart';
 import 'package:proteingrid/features/log/quick_log_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -337,7 +339,15 @@ class _LogTile extends ConsumerWidget {
       key: ValueKey(log.id),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
-        ref.read(todayLogsProvider.notifier).remove(log.id);
+        final goal = ref.read(dailyGoalProvider);
+        final streak = ref.read(streakProvider);
+        final unlocked = ref.read(watchUnlockedProvider).valueOrNull ?? false;
+        ref.read(todayLogsProvider.notifier).remove(
+              log.id,
+              goal: goal,
+              streak: streak,
+              watchUnlocked: unlocked,
+            );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Removed ${log.grams.toStringAsFixed(0)}g'),

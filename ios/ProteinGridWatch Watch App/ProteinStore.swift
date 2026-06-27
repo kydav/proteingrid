@@ -2,11 +2,12 @@ import Combine
 import WatchConnectivity
 import SwiftUI
 
-private let kAppGroup = "group.app.auaha.proteingrid"
-private let kTotal    = "pg_today_total"
-private let kGoal     = "pg_daily_goal"
-private let kStreak   = "pg_streak"
-private let kPending  = "pg_pending_logs"
+private let kAppGroup  = "group.app.auaha.proteingrid"
+private let kTotal     = "pg_today_total"
+private let kGoal      = "pg_daily_goal"
+private let kStreak    = "pg_streak"
+private let kPending   = "pg_pending_logs"
+private let kUnlocked  = "pg_watch_unlocked"
 
 class ProteinStore: NSObject, ObservableObject {
     @Published var todayTotal: Double = 0
@@ -56,13 +57,17 @@ class ProteinStore: NSObject, ObservableObject {
         let goal   = d.double(forKey: kGoal)
         dailyGoal  = goal > 0 ? goal : 150
         streak     = d.integer(forKey: kStreak)
+        isUnlocked = d.bool(forKey: kUnlocked)
     }
 
     private func applyContext(_ ctx: [String: Any]) {
         if let v = ctx[kTotal]  as? Double { todayTotal = v; defaults?.set(v, forKey: kTotal) }
         if let v = ctx[kGoal]   as? Double { dailyGoal  = v; defaults?.set(v, forKey: kGoal)  }
         if let v = ctx[kStreak] as? Int    { streak     = v; defaults?.set(v, forKey: kStreak) }
-        if let v = ctx["watch_unlocked"] as? Bool { isUnlocked = v }
+        if let v = ctx["watch_unlocked"] as? Bool {
+            isUnlocked = v
+            defaults?.set(v, forKey: kUnlocked)
+        }
     }
 }
 

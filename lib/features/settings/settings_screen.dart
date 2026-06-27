@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/providers.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -114,6 +116,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     await Share.share(buf.toString(), subject: 'ProteinGrid export');
+  }
+
+  Future<void> _restorePurchases() async {
+    try {
+      await Purchases.restorePurchases();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchases restored.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Restore failed: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _confirmClearToday() async {
@@ -265,6 +284,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const Divider(),
           const SizedBox(height: 16),
 
+          // ── Apple Watch ─────────────────────────────────────────────────
+          _sectionHeader(context, 'Apple Watch'),
+          _WatchSection(onRestore: _restorePurchases),
+
+          const SizedBox(height: 32),
+          const Divider(),
+          const SizedBox(height: 16),
+
           // ── Data ────────────────────────────────────────────────────────
           _sectionHeader(context, 'Data'),
           const SizedBox(height: 12),
@@ -302,4 +329,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
         ),
       );
+}
+
+class _WatchSection extends ConsumerWidget {
+  const _WatchSection({required this.onRestore});
+  final VoidCallback onRestore;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+    final watchAsync = ref.watch(watchUnlockedProvider);
+
+    return watchAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Checking Watch status…'),
+          ],
+        ),
+      ),
+      error: (_, _) => ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.watch_off_outlined, color: cs.onSurfaceVariant),
+        title: const Text('Unable to check Watch status'),
+      ),
+      data: (unlocked) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              unlocked ? Icons.watch_rounded : Icons.watch_off_outlined,
+              color: unlocked ? cs.primary : cs.onSurfaceVariant,
+            ),
+            title: Text(unlocked ? 'Watch app enabled' : 'Watch app locked'),
+            subtitle: Text(
+              unlocked
+                  ? 'Open the ProteinGrid app on your Apple Watch to start tracking.'
+                  : 'Watch access is available as a paid add-on.',
+            ),
+            trailing: unlocked
+                ? Icon(Icons.check_circle_rounded, color: cs.primary)
+                : null,
+          ),
+          if (!unlocked) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onRestore,
+              icon: const Icon(Icons.restore_rounded),
+              label: const Text('Restore Purchases'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }

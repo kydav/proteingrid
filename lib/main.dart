@@ -8,6 +8,7 @@ import 'package:proteingrid/core/theme.dart';
 import 'package:proteingrid/core/watch_service.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
+import 'package:proteingrid/data/stats_providers.dart';
 import 'package:quick_actions/quick_actions.dart';
 
 void main() async {
@@ -17,7 +18,6 @@ void main() async {
   await Hive.openBox<ProteinLog>('protein_logs');
   await NotificationsService.init();
   await initPurchases();
-  await WatchService.instance.init(onWatchLog: (_) {});
   runApp(const ProviderScope(child: ProteinGridApp()));
 }
 
@@ -33,6 +33,32 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
   void initState() {
     super.initState();
     _initQuickActions();
+    _initWatch();
+  }
+
+  void _initWatch() {
+    WatchService.instance.init(
+      onWatchLog: (grams) {
+        final goal = ref.read(dailyGoalProvider);
+        final streak = ref.read(streakProvider);
+        final unlocked = ref.read(watchUnlockedProvider).valueOrNull ?? false;
+        ref.read(todayLogsProvider.notifier).add(
+          grams: grams,
+          goal: goal,
+          streak: streak,
+          watchUnlocked: unlocked,
+        );
+      },
+    ).ignore();
+  }
+
+  void _syncWatch({required bool unlocked}) {
+    WatchService.instance.sync(
+      todayTotal: ref.read(todayTotalProvider),
+      dailyGoal: ref.read(dailyGoalProvider),
+      streak: ref.read(streakProvider),
+      watchUnlocked: unlocked,
+    ).ignore();
   }
 
   void _initQuickActions() {
@@ -64,6 +90,10 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(watchUnlockedProvider, (_, next) {
+      if (next case AsyncData(:final value)) _syncWatch(unlocked: value);
+    });
+
     return MaterialApp(
       title: 'ProteinGrid',
       debugShowCheckedModeBanner: false,

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/providers.dart';
+import 'package:proteingrid/data/stats_providers.dart';
 
 /// Shows the quick-log bottom sheet. Returns true if a log was saved.
 Future<bool> showQuickLogSheet(
@@ -64,9 +66,15 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
           ? _labelCtrl.text.trim()
           : null;
       final goal = ref.read(dailyGoalProvider);
-      await ref
-          .read(todayLogsProvider.notifier)
-          .add(grams: grams, label: label, goal: goal);
+      final streak = ref.read(streakProvider);
+      final unlocked = ref.read(watchUnlockedProvider).valueOrNull ?? false;
+      await ref.read(todayLogsProvider.notifier).add(
+            grams: grams,
+            label: label,
+            goal: goal,
+            streak: streak,
+            watchUnlocked: unlocked,
+          );
       await HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(true);
     } finally {
