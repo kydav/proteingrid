@@ -80,14 +80,14 @@ jobs:
           cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
             build/ios/ipa/Payload/
 
-          # SwiftSupport/ must use Apple's original-signed dylibs from the Xcode
-          # toolchain — NOT the re-signed copies in Runner.app/Frameworks (ITMS-90433).
+          # SwiftSupport must contain Apple's original-signed dylibs (ITMS-90433).
+          # swift-stdlib-tool copies from the Xcode toolchain preserving Apple's signatures.
           mkdir -p build/ios/ipa/SwiftSupport/iphoneos
-          SWIFT_DIR="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos"
-          for dylib in build/ios/ipa/Payload/Runner.app/Frameworks/libswift*.dylib; do
-            name=$(basename "$dylib")
-            [ -f "$SWIFT_DIR/$name" ] && cp "$SWIFT_DIR/$name" build/ios/ipa/SwiftSupport/iphoneos/
-          done
+          xcrun swift-stdlib-tool \
+            --copy \
+            --scan-folder build/ios/ipa/Payload/Runner.app \
+            --platform iphoneos \
+            --destination build/ios/ipa/SwiftSupport/iphoneos
           echo "SwiftSupport: $(ls build/ios/ipa/SwiftSupport/iphoneos/ | wc -l) dylibs"
 
           cd build/ios/ipa && zip -r Runner.ipa Payload SwiftSupport && rm -rf Payload SwiftSupport
