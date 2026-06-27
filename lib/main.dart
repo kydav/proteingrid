@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/core/router.dart';
 import 'package:proteingrid/core/theme.dart';
+import 'package:proteingrid/core/watch_service.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:quick_actions/quick_actions.dart';
@@ -14,6 +16,8 @@ void main() async {
   Hive.registerAdapter(ProteinLogAdapter());
   await Hive.openBox<ProteinLog>('protein_logs');
   await NotificationsService.init();
+  await initPurchases();
+  await WatchService.instance.init(onWatchLog: (_) {});
   runApp(const ProviderScope(child: ProteinGridApp()));
 }
 

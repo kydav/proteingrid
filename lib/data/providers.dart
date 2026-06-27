@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:proteingrid/core/notifications_service.dart';
+import 'package:proteingrid/core/watch_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,19 +31,23 @@ class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
     required double grams,
     String? label,
     int goal = 150,
+    int streak = 0,
+    bool watchUnlocked = false,
   }) async {
     await _repo.add(grams: grams, label: label);
     _load();
-    // Fire goal-hit notification if we just crossed the threshold.
     final total = state.fold(0.0, (s, l) => s + l.grams);
     if (total >= goal) {
       await NotificationsService.maybeShowGoalHit();
     }
+    WatchService.instance.sync(todayTotal: total, dailyGoal: goal, streak: streak, watchUnlocked: watchUnlocked).ignore();
   }
 
-  Future<void> remove(String id) async {
+  Future<void> remove(String id, {int goal = 150, int streak = 0, bool watchUnlocked = false}) async {
     await _repo.remove(id);
     _load();
+    final total = state.fold(0.0, (s, l) => s + l.grams);
+    WatchService.instance.sync(todayTotal: total, dailyGoal: goal, streak: streak, watchUnlocked: watchUnlocked).ignore();
   }
 
   ProteinLog? get lastLog => state.isEmpty ? null : state.first;

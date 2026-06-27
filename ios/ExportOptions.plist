@@ -19,6 +19,8 @@
 	<dict>
 		<key>app.auaha.proteingrid</key>
 		<string>Protein Grid App Store</string>
+		<key>app.auaha.proteingrid.watchkitapp</key>
+		<string>Protein Grid Watch App Store</string>
 	</dict>
 </dict>
 </plist>
