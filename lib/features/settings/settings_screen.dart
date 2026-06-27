@@ -5,7 +5,7 @@ import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/providers.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:proteingrid/features/settings/watch_paywall_sheet.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -116,23 +116,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     await Share.share(buf.toString(), subject: 'ProteinGrid export');
-  }
-
-  Future<void> _restorePurchases() async {
-    try {
-      await Purchases.restorePurchases();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Purchases restored.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Restore failed: $e')),
-        );
-      }
-    }
   }
 
   Future<void> _confirmClearToday() async {
@@ -286,7 +269,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ── Apple Watch ─────────────────────────────────────────────────
           _sectionHeader(context, 'Apple Watch'),
-          _WatchSection(onRestore: _restorePurchases),
+          const _WatchSection(),
 
           const SizedBox(height: 32),
           const Divider(),
@@ -332,8 +315,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 }
 
 class _WatchSection extends ConsumerWidget {
-  const _WatchSection({required this.onRestore});
-  final VoidCallback onRestore;
+  const _WatchSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -381,11 +363,11 @@ class _WatchSection extends ConsumerWidget {
           ),
           if (!unlocked) ...[
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: onRestore,
-              icon: const Icon(Icons.restore_rounded),
-              label: const Text('Restore Purchases'),
-              style: OutlinedButton.styleFrom(
+            FilledButton.icon(
+              onPressed: () => showWatchPaywallSheet(context),
+              icon: const Icon(Icons.watch_rounded, size: 18),
+              label: const Text('Unlock Watch App'),
+              style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
               ),
             ),
