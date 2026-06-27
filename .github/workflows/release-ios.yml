@@ -80,12 +80,14 @@ jobs:
           cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
             build/ios/ipa/Payload/
 
-          # Apple requires SwiftSupport/ at IPA root (ITMS-90426) AND dylibs in
-          # Runner.app/Frameworks (ITMS-90429). The xcconfig embeds them in Frameworks;
-          # mirror them to SwiftSupport so both checks pass.
+          # SwiftSupport/ must use Apple's original-signed dylibs from the Xcode
+          # toolchain — NOT the re-signed copies in Runner.app/Frameworks (ITMS-90433).
           mkdir -p build/ios/ipa/SwiftSupport/iphoneos
-          find "build/ios/ipa/Payload/Runner.app/Frameworks" -name "libswift*.dylib" \
-            -exec cp {} build/ios/ipa/SwiftSupport/iphoneos/ \; 2>/dev/null || true
+          SWIFT_DIR="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos"
+          for dylib in build/ios/ipa/Payload/Runner.app/Frameworks/libswift*.dylib; do
+            name=$(basename "$dylib")
+            [ -f "$SWIFT_DIR/$name" ] && cp "$SWIFT_DIR/$name" build/ios/ipa/SwiftSupport/iphoneos/
+          done
           echo "SwiftSupport: $(ls build/ios/ipa/SwiftSupport/iphoneos/ | wc -l) dylibs"
 
           cd build/ios/ipa && zip -r Runner.ipa Payload SwiftSupport && rm -rf Payload SwiftSupport
