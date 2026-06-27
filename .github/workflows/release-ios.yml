@@ -72,15 +72,16 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
-            MARKETING_VERSION=$BUILD_NAME
+            MARKETING_VERSION=$BUILD_NAME \
+            ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=YES
 
-      - name: Export IPA
+      - name: Package IPA
         run: |
-          xcodebuild -exportArchive \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
-            -exportPath build/ios/ipa
-          echo "Export contents: $(ls build/ios/ipa/)"
+          mkdir -p build/ios/ipa/Payload
+          cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
+            build/ios/ipa/Payload/
+          cd build/ios/ipa && zip -r Runner.ipa Payload && rm -rf Payload
+          echo "IPA packaged: $(ls -lh Runner.ipa)"
 
       - name: Upload to TestFlight
         if: ${{ !inputs.skip_upload }}
