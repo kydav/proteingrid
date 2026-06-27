@@ -86,7 +86,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
     try {
       final info = await Purchases.restorePurchases();
       if (mounted) {
-        if (info.entitlements.active.containsKey('watch_access')) {
+        if (info.entitlements.active.containsKey('protein_grid_pro')) {
           Navigator.of(context).pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
