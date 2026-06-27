@@ -78,6 +78,7 @@ jobs:
         run: |
           xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath build/ios/ipa
           echo "Export contents: $(ls build/ios/ipa/)"
 
