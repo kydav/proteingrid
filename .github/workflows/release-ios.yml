@@ -70,7 +70,7 @@ jobs:
             -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM=GMAMAXJ88G \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             MARKETING_VERSION=$BUILD_NAME
 
@@ -78,7 +78,6 @@ jobs:
         run: |
           xcodebuild -exportArchive \
             -archivePath build/ios/archive/Runner.xcarchive \
-            -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath build/ios/ipa
           echo "Export contents: $(ls build/ios/ipa/)"
 
