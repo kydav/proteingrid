@@ -79,7 +79,17 @@ jobs:
           mkdir -p build/ios/ipa/Payload
           cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
             build/ios/ipa/Payload/
-          cd build/ios/ipa && zip -r Runner.ipa Payload && rm -rf Payload
+
+          # SwiftSupport is required by App Store Connect (missing = ITMS-90426)
+          mkdir -p build/ios/ipa/SwiftSupport/iphoneos
+          xcrun swift-stdlib-tool \
+            --copy \
+            --scan-folder build/ios/ipa/Payload/Runner.app \
+            --platform iphoneos \
+            --destination build/ios/ipa/SwiftSupport/iphoneos || true
+          echo "SwiftSupport contents: $(ls build/ios/ipa/SwiftSupport/iphoneos/ | wc -l) files"
+
+          cd build/ios/ipa && zip -r Runner.ipa Payload SwiftSupport && rm -rf Payload SwiftSupport
           echo "IPA packaged: $(ls -lh Runner.ipa)"
 
       - name: Upload to TestFlight
