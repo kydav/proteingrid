@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-const _rcApiKey = 'appl_cHSXBAlGposupBWyTsMCVtHiusw';
+const _rcApiKey = 'appl_eKcZZfLlgnahqtlqmStzzaqJLYc';
 
 const _watchEntitlement = 'protein_grid_pro';
 

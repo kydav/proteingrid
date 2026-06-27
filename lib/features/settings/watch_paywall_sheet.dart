@@ -41,11 +41,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
   Future<void> _loadOffering() async {
     try {
       final offerings = await Purchases.getOfferings();
-      Package? pkg = offerings
-          .getOffering('watch')
-          ?.availablePackages
-          .firstOrNull;
-      pkg ??= offerings.current?.availablePackages.firstOrNull;
+      final pkg = offerings.current?.availablePackages.firstOrNull;
       if (mounted) {
         setState(() {
           _package = pkg;
@@ -62,7 +58,9 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
     if (_purchasing) return;
     if (_package == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Product not available yet — check back soon.')),
+        const SnackBar(
+          content: Text('Product not available yet — check back soon.'),
+        ),
       );
       return;
     }
