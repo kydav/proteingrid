@@ -59,7 +59,6 @@ jobs:
       - name: Build Archive
         run: |
           flutter build ios --release \
-            --no-codesign \
             --build-number=${{ github.run_number }}
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
@@ -67,14 +66,17 @@ jobs:
             -configuration Release \
             -archivePath build/ios/archive/Runner.xcarchive \
             -destination "generic/platform=iOS" \
-            DEVELOPMENT_TEAM=GMAMAXJ88G
+            DEVELOPMENT_TEAM=GMAMAXJ88G \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="iPhone Distribution"
 
-      - name: Export IPA
+      - name: Package IPA
         run: |
-          xcodebuild -exportArchive \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -exportPath build/ios/ipa \
-            -exportOptionsPlist ios/ExportOptions.plist
+          mkdir -p build/ios/ipa/Payload
+          cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
+            build/ios/ipa/Payload/
+          cd build/ios/ipa && zip -r Runner.ipa Payload && rm -rf Payload
+          echo "IPA packaged: $(ls -lh Runner.ipa)"
 
       - name: Upload to TestFlight
         if: ${{ !inputs.skip_upload }}
