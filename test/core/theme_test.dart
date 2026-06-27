@@ -47,7 +47,7 @@ void main() {
 
     test('default intensity (0.7) matches explicit 0.7', () {
       final def = neonGlow(Colors.cyan);
-      final explicit = neonGlow(Colors.cyan, intensity: 0.7);
+      final explicit = neonGlow(Colors.cyan);
       expect(def[0].color.a, closeTo(explicit[0].color.a, 0.01));
     });
 
@@ -55,10 +55,7 @@ void main() {
       // From source: intensity * 0.4 for second shadow.
       const intensity = 0.8;
       final glow = neonGlow(Colors.green, intensity: intensity);
-      expect(
-        glow[1].color.a,
-        closeTo(glow[0].color.a * 0.4, 0.01),
-      );
+      expect(glow[1].color.a, closeTo(glow[0].color.a * 0.4, 0.01));
     });
 
     test('works with fully opaque color', () {
@@ -69,19 +66,19 @@ void main() {
 
   group('Color constants', () {
     test('kNeonGreen ARGB value is correct', () {
-      expect(kNeonGreen.value, 0xFF39FF14);
+      expect(kNeonGreen.toARGB32(), 0xFF39FF14);
     });
 
     test('kNeonPink ARGB value is correct', () {
-      expect(kNeonPink.value, 0xFFFF00FF);
+      expect(kNeonPink.toARGB32(), 0xFFFF00FF);
     });
 
     test('kNeonCyan ARGB value is correct', () {
-      expect(kNeonCyan.value, 0xFF00FFFF);
+      expect(kNeonCyan.toARGB32(), 0xFF00FFFF);
     });
 
     test('kNeonYellow ARGB value is correct', () {
-      expect(kNeonYellow.value, 0xFFFFFF00);
+      expect(kNeonYellow.toARGB32(), 0xFFFFFF00);
     });
 
     test('kArcadeBg is near-black (lightness < 10%)', () {
@@ -101,7 +98,11 @@ void main() {
 
     test('all neon colors are fully opaque', () {
       for (final color in [kNeonGreen, kNeonPink, kNeonCyan, kNeonYellow]) {
-        expect(color.alpha, 255, reason: 'Expected $color to be fully opaque');
+        expect(
+          color.a * 255,
+          255,
+          reason: 'Expected $color to be fully opaque',
+        );
       }
     });
 

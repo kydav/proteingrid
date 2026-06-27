@@ -66,7 +66,7 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
 
       expect(container.read(todayLogsProvider).length, 1);
     });
@@ -76,7 +76,7 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 45, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 45);
 
       expect(container.read(todayLogsProvider).first.grams, 45.0);
     });
@@ -88,7 +88,7 @@ void main() {
 
       await container
           .read(todayLogsProvider.notifier)
-          .add(grams: 30, label: 'Eggs', goal: 150);
+          .add(grams: 30, label: 'Eggs');
 
       expect(container.read(todayLogsProvider).first.label, 'Eggs');
     });
@@ -98,8 +98,8 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
-      await container.read(todayLogsProvider.notifier).add(grams: 40, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
+      await container.read(todayLogsProvider.notifier).add(grams: 40);
 
       expect(container.read(todayLogsProvider).length, 2);
     });
@@ -109,7 +109,7 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 25, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 25);
 
       final last = container.read(todayLogsProvider.notifier).lastLog;
       expect(last, isNotNull);
@@ -125,7 +125,7 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 35, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 35);
 
       final id = container.read(todayLogsProvider).first.id;
       await container.read(todayLogsProvider.notifier).remove(id);
@@ -138,8 +138,8 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
-      await container.read(todayLogsProvider.notifier).add(grams: 40, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
+      await container.read(todayLogsProvider.notifier).add(grams: 40);
 
       final id = container.read(todayLogsProvider).last.id;
       await container.read(todayLogsProvider.notifier).remove(id);
@@ -164,8 +164,8 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
-      await container.read(todayLogsProvider.notifier).add(grams: 45, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
+      await container.read(todayLogsProvider.notifier).add(grams: 45);
 
       expect(container.read(todayTotalProvider), 75.0);
     });
@@ -175,8 +175,8 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 50, goal: 150);
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 50);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
 
       final id = container.read(todayLogsProvider).last.id;
       await container.read(todayLogsProvider.notifier).remove(id);
@@ -195,7 +195,7 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      await container.read(todayLogsProvider.notifier).add(grams: 30, goal: 150);
+      await container.read(todayLogsProvider.notifier).add(grams: 30);
 
       expect(container.read(recentLabelsProvider), isEmpty);
     });
@@ -207,7 +207,7 @@ void main() {
 
       await container
           .read(todayLogsProvider.notifier)
-          .add(grams: 30, label: 'Chicken', goal: 150);
+          .add(grams: 30, label: 'Chicken');
 
       expect(container.read(recentLabelsProvider), contains('Chicken'));
     });

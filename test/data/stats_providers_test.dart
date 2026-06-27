@@ -1,9 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:proteingrid/data/stats_providers.dart';
@@ -12,34 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-ProteinLog _log({
-  required String id,
-  required double grams,
-  required DateTime timestamp,
-  String? label,
-}) =>
-    ProteinLog(id: id, grams: grams, timestamp: timestamp, label: label);
-
-/// Opens an in-memory Hive box under the canonical name the repo uses, seeds
-/// it with [logs], and returns the box.
-Future<Box<ProteinLog>> _seedBox(List<ProteinLog> logs) async {
-  if (!Hive.isAdapterRegistered(0)) {
-    Hive.registerAdapter(ProteinLogAdapter());
-  }
-  // Close any previously-open box with this name to avoid state leaking.
-  if (Hive.isBoxOpen('protein_logs')) {
-    await Hive.box<ProteinLog>('protein_logs').close();
-  }
-  final box = await Hive.openBox<ProteinLog>(
-    'protein_logs',
-    bytes: Uint8List(0),
-  );
-  for (final log in logs) {
-    await box.put(log.id, log);
-  }
-  return box;
-}
 
 /// Creates a [ProviderContainer] with an overridden [logRepositoryProvider].
 ProviderContainer _container({List<Override> overrides = const []}) {
@@ -105,10 +74,7 @@ void main() {
     });
 
     test('returns exact average when all days have data', () {
-      expect(
-        _computeWeeklyAverage([100, 100, 100, 100, 100, 100, 100]),
-        100.0,
-      );
+      expect(_computeWeeklyAverage([100, 100, 100, 100, 100, 100, 100]), 100.0);
     });
 
     test('handles fractional grams correctly', () {
@@ -123,47 +89,46 @@ void main() {
     // From HomeScreen._ProgressRingCard:
     //   final progress = (total / goal).clamp(0.0, 1.0)
     //   final isGoalHit = total >= goal
-    double _progress(double total, int goal) =>
-        (total / goal).clamp(0.0, 1.0);
-    bool _isGoalHit(double total, int goal) => total >= goal;
-    int _remaining(double total, int goal) => (goal - total).ceil();
+    double progress(double total, int goal) => (total / goal).clamp(0.0, 1.0);
+    bool isGoalHit(double total, int goal) => total >= goal;
+    int remaining(double total, int goal) => (goal - total).ceil();
 
     test('progress is 0.0 when nothing logged', () {
-      expect(_progress(0, 150), 0.0);
+      expect(progress(0, 150), 0.0);
     });
 
     test('progress is 0.5 at half-goal', () {
-      expect(_progress(75, 150), 0.5);
+      expect(progress(75, 150), 0.5);
     });
 
     test('progress clamps to 1.0 when over goal', () {
-      expect(_progress(200, 150), 1.0);
+      expect(progress(200, 150), 1.0);
     });
 
     test('isGoalHit is false below goal', () {
-      expect(_isGoalHit(149, 150), isFalse);
+      expect(isGoalHit(149, 150), isFalse);
     });
 
     test('isGoalHit is true at exact goal', () {
-      expect(_isGoalHit(150, 150), isTrue);
+      expect(isGoalHit(150, 150), isTrue);
     });
 
     test('isGoalHit is true above goal', () {
-      expect(_isGoalHit(200, 150), isTrue);
+      expect(isGoalHit(200, 150), isTrue);
     });
 
     test('remaining rounds up for fractional grams', () {
       // 149.3g logged, goal 150 → 0.7g remaining → .ceil() = 1
-      expect(_remaining(149.3, 150), 1);
+      expect(remaining(149.3, 150), 1);
     });
 
     test('remaining is 0 when goal is exactly hit', () {
-      expect(_remaining(150.0, 150), 0);
+      expect(remaining(150.0, 150), 0);
     });
 
     test('remaining is negative when over goal', () {
       // Over-goal case: app shows GOAL HIT banner, not remaining.
-      expect(_remaining(160.0, 150), lessThan(0));
+      expect(remaining(160.0, 150), lessThan(0));
     });
   });
 
@@ -173,7 +138,7 @@ void main() {
     // We replicate the streakProvider algorithm in pure Dart to unit-test it
     // independently of Riverpod.
 
-    int _countStreak(
+    int countStreak(
       DateTime today,
       int goal,
       Map<DateTime, double> dailyTotals,
@@ -203,50 +168,40 @@ void main() {
     const goal = 150;
 
     test('streak is 0 when no days hit the goal', () {
-      expect(_countStreak(today, goal, {}), 0);
+      expect(countStreak(today, goal, {}), 0);
     });
 
     test('streak is 1 when only today hits the goal', () {
-      expect(
-        _countStreak(today, goal, {today: 150.0}),
-        1,
-      );
+      expect(countStreak(today, goal, {today: 150.0}), 1);
     });
 
     test('streak is 1 when yesterday hit but today did not', () {
       final yesterday = today.subtract(const Duration(days: 1));
-      expect(
-        _countStreak(today, goal, {yesterday: 160.0}),
-        1,
-      );
+      expect(countStreak(today, goal, {yesterday: 160.0}), 1);
     });
 
     test('streak is 3 for today + 2 consecutive prior days', () {
       final d1 = today.subtract(const Duration(days: 1));
       final d2 = today.subtract(const Duration(days: 2));
-      expect(
-        _countStreak(today, goal, {today: 150, d1: 200, d2: 180}),
-        3,
-      );
+      expect(countStreak(today, goal, {today: 150, d1: 200, d2: 180}), 3);
     });
 
     test('streak breaks if a day in the middle is below goal', () {
       final d1 = today.subtract(const Duration(days: 1));
-      final d2 = today.subtract(const Duration(days: 2));
       final d3 = today.subtract(const Duration(days: 3));
       // d2 is missing (0g) → streak breaks
       expect(
-        _countStreak(today, goal, {today: 150, d1: 200, d3: 180}),
+        countStreak(today, goal, {today: 150, d1: 200, d3: 180}),
         2, // today + d1; d2 is 0 → stop
       );
     });
 
     test('exactly hitting the goal counts for that day', () {
-      expect(_countStreak(today, goal, {today: 150.0}), 1);
+      expect(countStreak(today, goal, {today: 150.0}), 1);
     });
 
     test('1g below goal does not count', () {
-      expect(_countStreak(today, goal, {today: 149.9}), 0);
+      expect(countStreak(today, goal, {today: 149.9}), 0);
     });
   });
 
@@ -254,23 +209,23 @@ void main() {
 
   group('todayTotal fold logic', () {
     // todayTotalProvider uses .fold(0, (sum, l) => sum + l.grams)
-    double _foldTotal(List<double> grams) =>
+    double foldTotal(List<double> grams) =>
         grams.fold(0.0, (sum, g) => sum + g);
 
     test('returns 0 for empty list', () {
-      expect(_foldTotal([]), 0.0);
+      expect(foldTotal([]), 0.0);
     });
 
     test('sums a single entry', () {
-      expect(_foldTotal([35.0]), 35.0);
+      expect(foldTotal([35.0]), 35.0);
     });
 
     test('sums multiple entries', () {
-      expect(_foldTotal([30, 40, 50]), 120.0);
+      expect(foldTotal([30, 40, 50]), 120.0);
     });
 
     test('handles fractional grams', () {
-      expect(_foldTotal([33.3, 33.3, 33.3]), closeTo(99.9, 0.001));
+      expect(foldTotal([33.3, 33.3, 33.3]), closeTo(99.9, 0.001));
     });
   });
 
@@ -372,8 +327,8 @@ void main() {
       addTearDown(container.dispose);
 
       final today = container.read(selectedHistoryDayProvider);
-      container.read(selectedHistoryDayProvider.notifier).state =
-          today.subtract(const Duration(days: 1));
+      container.read(selectedHistoryDayProvider.notifier).state = today
+          .subtract(const Duration(days: 1));
 
       final yesterday = today.subtract(const Duration(days: 1));
       expect(container.read(selectedHistoryDayProvider), yesterday);

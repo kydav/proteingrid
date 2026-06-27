@@ -32,7 +32,6 @@ void main() {
         id: 'no-label',
         grams: 25.0,
         timestamp: DateTime.now(),
-        label: null,
       );
       expect(log.label, isNull);
     });
@@ -48,7 +47,7 @@ void main() {
     });
 
     test('distinct instances are independent', () {
-      final ts = DateTime(2024, 6, 1);
+      final ts = DateTime(2024, 6);
       final a = ProteinLog(id: 'a', grams: 10, timestamp: ts, label: 'Egg');
       final b = ProteinLog(id: 'b', grams: 20, timestamp: ts);
 
@@ -157,8 +156,7 @@ class _FakeWriter extends BinaryWriter {
     String value, {
     bool writeByteCount = true,
     Converter<String, List<int>> encoder = BinaryWriter.utf8Encoder,
-  }) =>
-      values.add(value);
+  }) => values.add(value);
 
   @override
   void writeDouble(double value) => values.add(value);
@@ -195,8 +193,7 @@ class _FakeWriter extends BinaryWriter {
     List<String> list, {
     bool writeLength = true,
     Converter<String, List<int>> encoder = BinaryWriter.utf8Encoder,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
   @override
   void writeList(List list, {bool writeLength = true}) =>
       throw UnimplementedError();
@@ -204,6 +201,7 @@ class _FakeWriter extends BinaryWriter {
   void writeMap(Map map, {bool writeLength = true}) =>
       throw UnimplementedError();
   @override
+  // ignore: experimental_member_use
   void writeHiveList(HiveList list, {bool writeLength = true}) =>
       throw UnimplementedError();
   @override
@@ -222,8 +220,7 @@ class _FakeReader extends BinaryReader {
   String readString([
     int? byteCount,
     Converter<List<int>, String> decoder = BinaryReader.utf8Decoder,
-  ]) =>
-      _next() as String;
+  ]) => _next() as String;
 
   @override
   double readDouble() => (_next() as num).toDouble();
@@ -267,8 +264,7 @@ class _FakeReader extends BinaryReader {
   List<String> readStringList([
     int? length,
     Converter<List<int>, String> decoder = BinaryReader.utf8Decoder,
-  ]) =>
-      throw UnimplementedError();
+  ]) => throw UnimplementedError();
   @override
   List readList([int? length]) => throw UnimplementedError();
   @override
@@ -276,5 +272,6 @@ class _FakeReader extends BinaryReader {
   @override
   dynamic read([int? typeId]) => throw UnimplementedError();
   @override
+  // ignore: experimental_member_use
   HiveList readHiveList([int? length]) => throw UnimplementedError();
 }

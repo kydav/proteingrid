@@ -32,8 +32,7 @@ ProteinLog _log({
   required double grams,
   required DateTime timestamp,
   String? label,
-}) =>
-    ProteinLog(id: id, grams: grams, timestamp: timestamp, label: label);
+}) => ProteinLog(id: id, grams: grams, timestamp: timestamp, label: label);
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -64,11 +63,11 @@ void main() {
       final target = DateTime(2024, 6, 15);
       await _seed(
         repoBox,
-        _log(id: '1', grams: 30, timestamp: DateTime(2024, 6, 15, 8, 0)),
+        _log(id: '1', grams: 30, timestamp: DateTime(2024, 6, 15, 8)),
       );
       await _seed(
         repoBox,
-        _log(id: '2', grams: 25, timestamp: DateTime(2024, 6, 15, 12, 0)),
+        _log(id: '2', grams: 25, timestamp: DateTime(2024, 6, 15, 12)),
       );
       await _seed(
         repoBox,
@@ -76,7 +75,7 @@ void main() {
       );
       await _seed(
         repoBox,
-        _log(id: '4', grams: 20, timestamp: DateTime(2024, 6, 16, 0, 0)),
+        _log(id: '4', grams: 20, timestamp: DateTime(2024, 6, 16)),
       );
 
       final result = repo.logsForDay(target);
@@ -106,15 +105,15 @@ void main() {
 
       await _seed(
         repoBox,
-        _log(id: 'early', grams: 20, timestamp: DateTime(2024, 6, 15, 7, 0)),
+        _log(id: 'early', grams: 20, timestamp: DateTime(2024, 6, 15, 7)),
       );
       await _seed(
         repoBox,
-        _log(id: 'late', grams: 50, timestamp: DateTime(2024, 6, 15, 20, 0)),
+        _log(id: 'late', grams: 50, timestamp: DateTime(2024, 6, 15, 20)),
       );
       await _seed(
         repoBox,
-        _log(id: 'noon', grams: 30, timestamp: DateTime(2024, 6, 15, 12, 0)),
+        _log(id: 'noon', grams: 30, timestamp: DateTime(2024, 6, 15, 12)),
       );
 
       final result = repo.logsForDay(DateTime(2024, 6, 15));
@@ -134,11 +133,7 @@ void main() {
 
       await _seed(
         repoBox,
-        _log(
-          id: 'midnight',
-          grams: 10,
-          timestamp: DateTime(2024, 3, 10, 0, 0, 0),
-        ),
+        _log(id: 'midnight', grams: 10, timestamp: DateTime(2024, 3, 10)),
       );
 
       final result = repo.logsForDay(DateTime(2024, 3, 10));
@@ -160,15 +155,15 @@ void main() {
 
       await _seed(
         repoBox,
-        _log(id: 'old', grams: 10, timestamp: DateTime(2024, 1, 1)),
+        _log(id: 'old', grams: 10, timestamp: DateTime(2024)),
       );
       await _seed(
         repoBox,
-        _log(id: 'new', grams: 20, timestamp: DateTime(2024, 6, 1)),
+        _log(id: 'new', grams: 20, timestamp: DateTime(2024, 6)),
       );
       await _seed(
         repoBox,
-        _log(id: 'mid', grams: 15, timestamp: DateTime(2024, 3, 1)),
+        _log(id: 'mid', grams: 15, timestamp: DateTime(2024, 3)),
       );
 
       final result = repo.allLogs();
@@ -193,34 +188,37 @@ void main() {
   // ---------- recentLabels --------------------------------------------------
 
   group('LogRepository.recentLabels', () {
-    test('returns up to 6 unique labels from most-recently-inserted logs', () async {
-      final repoBox = await Hive.openBox<ProteinLog>(
-        'protein_logs',
-        bytes: Uint8List(0),
-      );
-      final repo = LogRepository();
-
-      // Insert in order: box.values preserves insertion order.
-      // .reversed makes the last-inserted item first.
-      for (var i = 0; i < 7; i++) {
-        await _seed(
-          repoBox,
-          _log(
-            id: 'id$i',
-            grams: 10,
-            timestamp: DateTime(2024, 1, i + 1),
-            label: 'Label$i',
-          ),
+    test(
+      'returns up to 6 unique labels from most-recently-inserted logs',
+      () async {
+        final repoBox = await Hive.openBox<ProteinLog>(
+          'protein_logs',
+          bytes: Uint8List(0),
         );
-      }
+        final repo = LogRepository();
 
-      final result = repo.recentLabels();
-      // Last 6 inserted (indices 1..6) are newest after .reversed
-      expect(result.length, 6);
-      expect(result, isNot(contains('Label0')));
+        // Insert in order: box.values preserves insertion order.
+        // .reversed makes the last-inserted item first.
+        for (var i = 0; i < 7; i++) {
+          await _seed(
+            repoBox,
+            _log(
+              id: 'id$i',
+              grams: 10,
+              timestamp: DateTime(2024, 1, i + 1),
+              label: 'Label$i',
+            ),
+          );
+        }
 
-      await repoBox.close();
-    });
+        final result = repo.recentLabels();
+        // Last 6 inserted (indices 1..6) are newest after .reversed
+        expect(result.length, 6);
+        expect(result, isNot(contains('Label0')));
+
+        await repoBox.close();
+      },
+    );
 
     test('deduplicates labels', () async {
       final repoBox = await Hive.openBox<ProteinLog>(
@@ -231,12 +229,7 @@ void main() {
 
       await _seed(
         repoBox,
-        _log(
-          id: 'a',
-          grams: 10,
-          timestamp: DateTime(2024, 1, 1),
-          label: 'Chicken',
-        ),
+        _log(id: 'a', grams: 10, timestamp: DateTime(2024), label: 'Chicken'),
       );
       await _seed(
         repoBox,
@@ -272,7 +265,7 @@ void main() {
 
       await _seed(
         repoBox,
-        _log(id: 'no-label', grams: 10, timestamp: DateTime(2024, 1, 1)),
+        _log(id: 'no-label', grams: 10, timestamp: DateTime(2024)),
       );
       await _seed(
         repoBox,
@@ -340,28 +333,28 @@ void main() {
   group('Label trimming logic (expression parity check)', () {
     // Documents and verifies the exact expression used in LogRepository.add():
     //   label?.trim().isNotEmpty ?? false ? label!.trim() : null
-    String? _applyTrim(String? raw) =>
+    String? applyTrim(String? raw) =>
         raw?.trim().isNotEmpty ?? false ? raw!.trim() : null;
 
     test('trims surrounding whitespace', () {
-      expect(_applyTrim('  chicken  '), 'chicken');
+      expect(applyTrim('  chicken  '), 'chicken');
     });
 
     test('returns null for whitespace-only input', () {
-      expect(_applyTrim('   '), isNull);
+      expect(applyTrim('   '), isNull);
     });
 
     test('returns null for null input', () {
-      expect(_applyTrim(null), isNull);
+      expect(applyTrim(null), isNull);
     });
 
     test('returns empty string unchanged (empty string trim is empty)', () {
       // Empty string → trim() == '' → isNotEmpty is false → null
-      expect(_applyTrim(''), isNull);
+      expect(applyTrim(''), isNull);
     });
 
     test('preserves non-whitespace content', () {
-      expect(_applyTrim('Greek yogurt'), 'Greek yogurt');
+      expect(applyTrim('Greek yogurt'), 'Greek yogurt');
     });
   });
 }

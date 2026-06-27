@@ -29,21 +29,20 @@ void main() {
   group('WatchService sync argument map', () {
     // The sync() method builds a map with four keys sent to native.
     // We verify the map structure without calling the real channel.
-    Map<String, dynamic> _buildSyncArgs({
+    Map<String, dynamic> buildSyncArgs({
       required double todayTotal,
       required int dailyGoal,
       required int streak,
       required bool watchUnlocked,
-    }) =>
-        {
-          'pg_today_total': todayTotal,
-          'pg_daily_goal': dailyGoal,
-          'pg_streak': streak,
-          'watch_unlocked': watchUnlocked,
-        };
+    }) => {
+      'pg_today_total': todayTotal,
+      'pg_daily_goal': dailyGoal,
+      'pg_streak': streak,
+      'watch_unlocked': watchUnlocked,
+    };
 
     test('sync args contain all four required keys', () {
-      final args = _buildSyncArgs(
+      final args = buildSyncArgs(
         todayTotal: 120.5,
         dailyGoal: 150,
         streak: 3,
@@ -56,7 +55,7 @@ void main() {
     });
 
     test('todayTotal is passed as a double', () {
-      final args = _buildSyncArgs(
+      final args = buildSyncArgs(
         todayTotal: 75.0,
         dailyGoal: 150,
         streak: 0,
@@ -67,7 +66,7 @@ void main() {
     });
 
     test('dailyGoal is passed as an int', () {
-      final args = _buildSyncArgs(
+      final args = buildSyncArgs(
         todayTotal: 0,
         dailyGoal: 200,
         streak: 0,
@@ -78,7 +77,7 @@ void main() {
     });
 
     test('streak is passed as an int', () {
-      final args = _buildSyncArgs(
+      final args = buildSyncArgs(
         todayTotal: 0,
         dailyGoal: 150,
         streak: 7,
@@ -88,7 +87,7 @@ void main() {
     });
 
     test('watchUnlocked is passed as a bool', () {
-      final args = _buildSyncArgs(
+      final args = buildSyncArgs(
         todayTotal: 0,
         dailyGoal: 150,
         streak: 0,
@@ -103,7 +102,7 @@ void main() {
     // The native 'watchLog' callback only calls onWatchLog when grams > 0.
     // We replicate the guard logic to unit-test it.
 
-    void _handleWatchLog(
+    void handleWatchLog(
       MethodCall call, {
       required Function(double) onWatchLog,
     }) {
@@ -115,7 +114,7 @@ void main() {
 
     test('calls onWatchLog with positive grams', () {
       double? received;
-      _handleWatchLog(
+      handleWatchLog(
         const MethodCall('watchLog', 35),
         onWatchLog: (g) => received = g,
       );
@@ -124,7 +123,7 @@ void main() {
 
     test('does not call onWatchLog for zero grams', () {
       bool called = false;
-      _handleWatchLog(
+      handleWatchLog(
         const MethodCall('watchLog', 0),
         onWatchLog: (_) => called = true,
       );
@@ -133,7 +132,7 @@ void main() {
 
     test('does not call onWatchLog for negative grams', () {
       bool called = false;
-      _handleWatchLog(
+      handleWatchLog(
         const MethodCall('watchLog', -10),
         onWatchLog: (_) => called = true,
       );
@@ -142,8 +141,8 @@ void main() {
 
     test('does not call onWatchLog for null arguments', () {
       bool called = false;
-      _handleWatchLog(
-        const MethodCall('watchLog', null),
+      handleWatchLog(
+        const MethodCall('watchLog'),
         onWatchLog: (_) => called = true,
       );
       expect(called, isFalse);
@@ -151,7 +150,7 @@ void main() {
 
     test('ignores unknown method names', () {
       bool called = false;
-      _handleWatchLog(
+      handleWatchLog(
         const MethodCall('unknownMethod', 50),
         onWatchLog: (_) => called = true,
       );
@@ -160,7 +159,7 @@ void main() {
 
     test('converts int argument to double', () {
       double? received;
-      _handleWatchLog(
+      handleWatchLog(
         const MethodCall('watchLog', 42), // int, not double
         onWatchLog: (g) => received = g,
       );

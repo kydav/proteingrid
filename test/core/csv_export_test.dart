@@ -36,8 +36,7 @@ ProteinLog _log({
   required double grams,
   required DateTime timestamp,
   String? label,
-}) =>
-    ProteinLog(id: id, grams: grams, timestamp: timestamp, label: label);
+}) => ProteinLog(id: id, grams: grams, timestamp: timestamp, label: label);
 
 void main() {
   group('CSV export format', () {
@@ -56,7 +55,7 @@ void main() {
       final log = _log(
         id: '1',
         grams: 30,
-        timestamp: DateTime(2024, 3, 5, 9, 30, 0), // March 5th
+        timestamp: DateTime(2024, 3, 5, 9, 30), // March 5th
       );
       final csv = _buildCsv([log]);
       expect(csv, contains('2024-03-05'));
@@ -117,8 +116,8 @@ void main() {
 
     test('multiple logs produce multiple data rows', () {
       final logs = [
-        _log(id: '1', grams: 30, timestamp: DateTime(2024, 6, 15, 8, 0)),
-        _log(id: '2', grams: 45, timestamp: DateTime(2024, 6, 15, 12, 0)),
+        _log(id: '1', grams: 30, timestamp: DateTime(2024, 6, 15, 8)),
+        _log(id: '2', grams: 45, timestamp: DateTime(2024, 6, 15, 12)),
       ];
       final lines = _buildCsv(logs).trim().split('\n');
       // Header + 2 data rows

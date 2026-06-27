@@ -28,7 +28,7 @@ void main() {
     // The service reads from SharedPreferences with hard-coded defaults.
     // We verify those default values match what the code specifies.
 
-    Future<({bool enabled, TimeOfDay time})> _getSettings() async {
+    Future<({bool enabled, TimeOfDay time})> getSettings() async {
       final prefs = await SharedPreferences.getInstance();
       final enabled = prefs.getBool('reminder_enabled') ?? false;
       final hour = prefs.getInt('reminder_hour') ?? 20;
@@ -37,23 +37,23 @@ void main() {
     }
 
     test('enabled defaults to false', () async {
-      final settings = await _getSettings();
+      final settings = await getSettings();
       expect(settings.enabled, isFalse);
     });
 
     test('default reminder hour is 20 (8 PM)', () async {
-      final settings = await _getSettings();
+      final settings = await getSettings();
       expect(settings.time.hour, 20);
     });
 
     test('default reminder minute is 0', () async {
-      final settings = await _getSettings();
+      final settings = await getSettings();
       expect(settings.time.minute, 0);
     });
 
     test('reads persisted enabled flag', () async {
       SharedPreferences.setMockInitialValues({'reminder_enabled': true});
-      final settings = await _getSettings();
+      final settings = await getSettings();
       expect(settings.enabled, isTrue);
     });
 
@@ -62,7 +62,7 @@ void main() {
         'reminder_hour': 9,
         'reminder_minute': 30,
       });
-      final settings = await _getSettings();
+      final settings = await getSettings();
       expect(settings.time.hour, 9);
       expect(settings.time.minute, 30);
     });
@@ -74,23 +74,22 @@ void main() {
     // The service stores today's date as 'yyyy-M-d' (NOT zero-padded).
     // We verify the date-string format matches the logic in the code.
 
-    String _todayKey(DateTime now) =>
-        '${now.year}-${now.month}-${now.day}';
+    String todayKey(DateTime now) => '${now.year}-${now.month}-${now.day}';
 
     test('date key uses non-zero-padded month and day', () {
       final d = DateTime(2024, 3, 5); // March 5th — single digits
-      expect(_todayKey(d), '2024-3-5');
+      expect(todayKey(d), '2024-3-5');
     });
 
     test('date key for double-digit month and day', () {
       final d = DateTime(2024, 12, 31);
-      expect(_todayKey(d), '2024-12-31');
+      expect(todayKey(d), '2024-12-31');
     });
 
     test('goal-hit notification is skipped when already sent today', () async {
       final prefs = await SharedPreferences.getInstance();
       final today = DateTime.now();
-      final todayStr = _todayKey(today);
+      final todayStr = todayKey(today);
       // Simulate the service having already sent the notification.
       await prefs.setString('goal_hit_sent_date', todayStr);
 
@@ -102,8 +101,8 @@ void main() {
     test('goal-hit notification is sent on a new day', () async {
       final prefs = await SharedPreferences.getInstance();
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      final yesterdayStr = _todayKey(yesterday);
-      final todayStr = _todayKey(DateTime.now());
+      final yesterdayStr = todayKey(yesterday);
+      final todayStr = todayKey(DateTime.now());
 
       await prefs.setString('goal_hit_sent_date', yesterdayStr);
 
@@ -115,7 +114,7 @@ void main() {
     test('goal-hit notification is sent when no previous record exists', () {
       // No entry in prefs → sentDate is null → null != todayStr → should fire
       const String? sentDate = null;
-      final todayStr = _todayKey(DateTime.now());
+      final todayStr = todayKey(DateTime.now());
       expect(sentDate == todayStr, isFalse);
     });
   });
@@ -123,7 +122,7 @@ void main() {
   // ---------- cancelDailyReminder SharedPreferences side-effect --------------
 
   group('cancelDailyReminder SharedPreferences side-effect', () {
-    Future<void> _cancelReminder() async {
+    Future<void> cancelReminder() async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('reminder_enabled', false);
     }
@@ -131,7 +130,7 @@ void main() {
     test('sets reminder_enabled to false in prefs', () async {
       SharedPreferences.setMockInitialValues({'reminder_enabled': true});
 
-      await _cancelReminder();
+      await cancelReminder();
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('reminder_enabled'), isFalse);
@@ -141,7 +140,7 @@ void main() {
   // ---------- scheduleDailyReminder SharedPreferences side-effect ------------
 
   group('scheduleDailyReminder SharedPreferences side-effect', () {
-    Future<void> _scheduleReminder(TimeOfDay time) async {
+    Future<void> scheduleReminder(TimeOfDay time) async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('reminder_enabled', true);
       await prefs.setInt('reminder_hour', time.hour);
@@ -150,7 +149,7 @@ void main() {
 
     test('persists enabled=true and the chosen time', () async {
       const time = TimeOfDay(hour: 8, minute: 30);
-      await _scheduleReminder(time);
+      await scheduleReminder(time);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('reminder_enabled'), isTrue);

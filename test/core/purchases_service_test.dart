@@ -24,33 +24,35 @@ void main() {
       expect(watchEntitlement, 'watch_access');
     });
 
-    test('RevenueCat API key is non-empty and starts with the platform prefix',
-        () {
-      // Apple-platform RevenueCat API keys begin with 'appl_'.
-      const rcApiKey = 'appl_cHSXBAlGposupBWyTsMCVtHiusw';
-      expect(rcApiKey, startsWith('appl_'));
-      expect(rcApiKey.length, greaterThan(5));
-    });
+    test(
+      'RevenueCat API key is non-empty and starts with the platform prefix',
+      () {
+        // Apple-platform RevenueCat API keys begin with 'appl_'.
+        const rcApiKey = 'appl_cHSXBAlGposupBWyTsMCVtHiusw';
+        expect(rcApiKey, startsWith('appl_'));
+        expect(rcApiKey.length, greaterThan(5));
+      },
+    );
   });
 
   group('Platform guard logic for watchUnlockedProvider', () {
     // The provider returns false on non-iOS without hitting RevenueCat.
     // We verify the guard logic in isolation.
 
-    bool _shouldCheckRevenueCat({required bool isIOS}) => isIOS;
+    bool shouldCheckRevenueCat({required bool isIOS}) => isIOS;
 
     test('returns early on non-iOS platform', () {
-      expect(_shouldCheckRevenueCat(isIOS: false), isFalse);
+      expect(shouldCheckRevenueCat(isIOS: false), isFalse);
     });
 
     test('proceeds to check RevenueCat on iOS', () {
-      expect(_shouldCheckRevenueCat(isIOS: true), isTrue);
+      expect(shouldCheckRevenueCat(isIOS: true), isTrue);
     });
   });
 
   group('watchUnlockedProvider error handling logic', () {
     // The provider catches all errors and returns false.
-    Future<bool> _safeCheck(Future<bool> Function() check) async {
+    Future<bool> safeCheck(Future<bool> Function() check) async {
       try {
         return await check();
       } catch (e) {
@@ -59,17 +61,17 @@ void main() {
     }
 
     test('returns false when RevenueCat throws', () async {
-      final result = await _safeCheck(() => Future.error(Exception('network')));
+      final result = await safeCheck(() => Future.error(Exception('network')));
       expect(result, isFalse);
     });
 
     test('returns true when check succeeds', () async {
-      final result = await _safeCheck(() => Future.value(true));
+      final result = await safeCheck(() => Future.value(true));
       expect(result, isTrue);
     });
 
     test('returns false when check returns false', () async {
-      final result = await _safeCheck(() => Future.value(false));
+      final result = await safeCheck(() => Future.value(false));
       expect(result, isFalse);
     });
   });
