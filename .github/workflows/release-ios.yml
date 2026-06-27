@@ -58,8 +58,10 @@ jobs:
 
       - name: Build Archive
         run: |
+          BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | sed 's/+.*//' | tr -d ' ')
           flutter build ios --release \
-            --build-number=${{ github.run_number }}
+            --build-number=${{ github.run_number }} \
+            --build-name=$BUILD_NAME
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
@@ -68,7 +70,9 @@ jobs:
             -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM=GMAMAXJ88G \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="iPhone Distribution"
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            MARKETING_VERSION=$BUILD_NAME
 
       - name: Package IPA
         run: |
