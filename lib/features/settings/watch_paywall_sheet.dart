@@ -153,7 +153,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
 
               // Headline
               Text(
-                'WATCH APP',
+                'ProteinGrid Pro',
                 style: GoogleFonts.pressStart2p(
                   fontSize: 14,
                   color: kNeonGreen,
@@ -216,7 +216,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
                           ),
                         )
                       : Text(
-                          'UNLOCK WATCH',
+                          'UNLOCK PRO',
                           style: GoogleFonts.pressStart2p(
                             fontSize: 10,
                             color: kArcadeBg,
@@ -291,7 +291,7 @@ class _PriceChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = loading
         ? 'Loading…'
-        : (package?.storeProduct.priceString ?? 'Coming Soon');
+        : (package?.storeProduct.priceString ?? "\$1.99");
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
