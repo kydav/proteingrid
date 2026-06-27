@@ -47,6 +47,9 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
+
       - name: Install provisioning profiles
         env:
           PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
@@ -59,6 +62,14 @@ jobs:
       - name: Build Archive
         run: |
           BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | sed 's/+.*//' | tr -d ' ')
+
+          # Dynamically detect the distribution cert name from the keychain
+          CERT_NAME=$(security find-identity -v -p codesigning 2>/dev/null \
+            | grep -E '"(Apple Distribution|iPhone Distribution):' \
+            | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "Using cert: ${CERT_NAME:-not found, falling back to Apple Distribution}"
+          CERT_NAME="${CERT_NAME:-Apple Distribution}"
+
           flutter build ios --release \
             --build-number=${{ github.run_number }} \
             --build-name=$BUILD_NAME
@@ -70,28 +81,20 @@ jobs:
             -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM=GMAMAXJ88G \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGN_IDENTITY="$CERT_NAME" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             MARKETING_VERSION=$BUILD_NAME
 
-      - name: Package IPA
+          echo "Archive signing:"
+          codesign -dvvv "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" 2>&1 | grep -E "Authority|TeamIdentifier" || true
+
+      - name: Export IPA
         run: |
-          mkdir -p build/ios/ipa/Payload
-          cp -r "build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app" \
-            build/ios/ipa/Payload/
-
-          # SwiftSupport must contain Apple's original-signed dylibs (ITMS-90433).
-          # swift-stdlib-tool copies from the Xcode toolchain preserving Apple's signatures.
-          mkdir -p build/ios/ipa/SwiftSupport/iphoneos
-          xcrun swift-stdlib-tool \
-            --copy \
-            --scan-folder build/ios/ipa/Payload/Runner.app \
-            --platform iphoneos \
-            --destination build/ios/ipa/SwiftSupport/iphoneos
-          echo "SwiftSupport: $(ls build/ios/ipa/SwiftSupport/iphoneos/ | wc -l) dylibs"
-
-          cd build/ios/ipa && zip -r Runner.ipa Payload SwiftSupport && rm -rf Payload SwiftSupport
-          echo "IPA packaged: $(ls -lh Runner.ipa)"
+          xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa
+          echo "Export contents: $(ls build/ios/ipa/)"
 
       - name: Upload to TestFlight
         if: ${{ !inputs.skip_upload }}
