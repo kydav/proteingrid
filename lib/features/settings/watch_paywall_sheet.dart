@@ -13,7 +13,7 @@ Future<void> showWatchPaywallSheet(BuildContext context) {
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+      // borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
     ),
     builder: (_) => const _WatchPaywallSheet(),
   );
@@ -41,16 +41,31 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
   Future<void> _loadOffering() async {
     try {
       final offerings = await Purchases.getOfferings();
-      Package? pkg = offerings.getOffering('watch')?.availablePackages.firstOrNull;
+      Package? pkg = offerings
+          .getOffering('watch')
+          ?.availablePackages
+          .firstOrNull;
       pkg ??= offerings.current?.availablePackages.firstOrNull;
-      if (mounted) setState(() { _package = pkg; _loadingPackage = false; });
-    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _package = pkg;
+          _loadingPackage = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading offerings: $e');
       if (mounted) setState(() => _loadingPackage = false);
     }
   }
 
   Future<void> _purchase() async {
-    if (_package == null || _purchasing) return;
+    if (_purchasing) return;
+    if (_package == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product not available yet — check back soon.')),
+      );
+      return;
+    }
     setState(() => _purchasing = true);
     try {
       await Purchases.purchasePackage(_package!);
@@ -58,9 +73,9 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } on PurchasesErrorCode catch (e) {
       if (e != PurchasesErrorCode.purchaseCancelledError && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Purchase failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
@@ -77,15 +92,17 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
           Navigator.of(context).pop(true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No Watch purchase found to restore.')),
+            const SnackBar(
+              content: Text('No Watch purchase found to restore.'),
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Restore failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _restoring = false);
@@ -99,7 +116,6 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
     return Container(
       decoration: BoxDecoration(
         color: kArcadeSurface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
         border: Border(
           top: BorderSide(color: kNeonGreen.withValues(alpha: 0.5), width: 1.5),
           left: BorderSide(color: kNeonGreen.withValues(alpha: 0.2)),
@@ -133,7 +149,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
               const SizedBox(height: 24),
 
               // Watch icon
-              _GlowingWatchIcon(),  // ignore: prefer_const_constructors
+              _GlowingWatchIcon(), // ignore: prefer_const_constructors
 
               const SizedBox(height: 20),
 
@@ -144,7 +160,9 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
                   fontSize: 14,
                   color: kNeonGreen,
                   shadows: neonGlow(kNeonGreen, intensity: 0.9)
-                      .map((s) => Shadow(color: s.color, blurRadius: s.blurRadius))
+                      .map(
+                        (s) => Shadow(color: s.color, blurRadius: s.blurRadius),
+                      )
                       .toList(),
                 ),
               ),
@@ -175,22 +193,21 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
                 width: double.infinity,
                 height: 52,
                 child: FilledButton(
-                  onPressed: (_purchasing || _loadingPackage || _package == null)
-                      ? null
-                      : _purchase,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: kNeonGreen,
-                    foregroundColor: kArcadeBg,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                    ),
-                    elevation: 0,
-                  ).copyWith(
-                    shadowColor: WidgetStateProperty.all(kNeonGreen),
-                    elevation: WidgetStateProperty.resolveWith(
-                      (s) => s.contains(WidgetState.pressed) ? 0 : 0,
-                    ),
-                  ),
+                  onPressed: _purchasing ? null : _purchase,
+                  style:
+                      FilledButton.styleFrom(
+                        backgroundColor: kNeonGreen,
+                        foregroundColor: kArcadeBg,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
+                        elevation: 0,
+                      ).copyWith(
+                        shadowColor: WidgetStateProperty.all(kNeonGreen),
+                        elevation: WidgetStateProperty.resolveWith(
+                          (s) => s.contains(WidgetState.pressed) ? 0 : 0,
+                        ),
+                      ),
                   child: _purchasing
                       ? const SizedBox(
                           height: 20,
@@ -275,8 +292,8 @@ class _PriceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = loading
-        ? '—'
-        : (package?.storeProduct.priceString ?? 'See App Store');
+        ? 'Loading…'
+        : (package?.storeProduct.priceString ?? 'Coming Soon');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -288,10 +305,7 @@ class _PriceChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.pressStart2p(
-          fontSize: 12,
-          color: kNeonGreen,
-        ),
+        style: GoogleFonts.pressStart2p(fontSize: 12, color: kNeonGreen),
       ),
     );
   }
@@ -306,7 +320,10 @@ class _GlowingWatchIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: kNeonGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: kNeonGreen.withValues(alpha: 0.5), width: 1.5),
+        border: Border.all(
+          color: kNeonGreen.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
         boxShadow: neonGlow(kNeonGreen, intensity: 0.35),
       ),
       child: Stack(
@@ -331,7 +348,10 @@ class _WatchFacePainter extends CustomPainter {
 
     // Watch case outline
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromCircle(center: c, radius: r), const Radius.circular(6)),
+      RRect.fromRectAndRadius(
+        Rect.fromCircle(center: c, radius: r),
+        const Radius.circular(6),
+      ),
       paint,
     );
 
