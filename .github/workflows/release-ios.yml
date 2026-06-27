@@ -58,17 +58,21 @@ jobs:
 
       - name: Build Archive
         run: |
-          flutter build ipa --release \
-            --export-options-plist=ios/ExportOptions.plist \
-            --build-number=${{ github.run_number }} || true
+          flutter build ios --release \
+            --no-codesign \
+            --build-number=${{ github.run_number }}
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -destination "generic/platform=iOS" \
+            DEVELOPMENT_TEAM=GMAMAXJ88G
 
       - name: Export IPA
         run: |
-          ARCHIVE_PATH=$(find build/ios/archive -name '*.xcarchive' | head -1)
-          echo "Archive: $ARCHIVE_PATH"
-          if [ -z "$ARCHIVE_PATH" ]; then echo "ERROR: no xcarchive found"; exit 1; fi
           xcodebuild -exportArchive \
-            -archivePath "$ARCHIVE_PATH" \
+            -archivePath build/ios/archive/Runner.xcarchive \
             -exportPath build/ios/ipa \
             -exportOptionsPlist ios/ExportOptions.plist
 
