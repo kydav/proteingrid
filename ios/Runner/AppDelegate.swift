@@ -45,12 +45,12 @@ private let kPending  = "pg_pending_logs"
   // MARK: - Sync
 
   private func syncToWatch(args: [String: Any]) {
-    guard let d = defaults else { return }
-    if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
-    if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
-    if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
+    if let d = defaults {
+      if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
+      if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
+      if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
+    }
 
-    // Also push via WatchConnectivity for real-time update when Watch is active.
     guard WCSession.default.isPaired, WCSession.default.isWatchAppInstalled else { return }
     let ctx: [String: Any] = [
       kTotal:  args[kTotal]  ?? 0.0,
@@ -64,14 +64,15 @@ private let kPending  = "pg_pending_logs"
   // MARK: - Drain Watch pending logs
 
   private func drainPendingWatchLogs() {
-    guard let pending = defaults?.array(forKey: kPending) as? [[String: Any]],
+    guard let d = defaults,
+          let pending = d.array(forKey: kPending) as? [[String: Any]],
           !pending.isEmpty else { return }
     for entry in pending {
       if let grams = entry["grams"] as? Double {
         watchChannel?.invokeMethod("watchLog", arguments: grams)
       }
     }
-    defaults?.set([], forKey: kPending)
+    d.set([], forKey: kPending)
   }
 
   // MARK: - WCSessionDelegate
