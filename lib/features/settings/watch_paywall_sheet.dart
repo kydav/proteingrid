@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/core/router.dart';
 import 'package:proteingrid/core/theme.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -115,7 +116,7 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
     try {
       final info = await Purchases.restorePurchases();
       if (mounted) {
-        if (info.entitlements.active.containsKey('protein_grid_pro')) {
+        if (info.entitlements.active.containsKey(kWatchEntitlement)) {
           Navigator.of(context).pop(true);
         } else {
           await _showOverlayMessage(

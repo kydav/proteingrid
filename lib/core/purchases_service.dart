@@ -6,7 +6,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 
 const _rcApiKey = 'appl_eKcZZfLlgnahqtlqmStzzaqJLYc';
 
-const _watchEntitlement = 'ProteinGrid Pro';
+const kWatchEntitlement = 'ProteinGrid Pro';
 
 Future<void> initPurchases() async {
   if (!Platform.isIOS) return;
@@ -18,7 +18,7 @@ final watchUnlockedProvider = FutureProvider<bool>((ref) async {
   if (!Platform.isIOS) return false;
   try {
     final info = await Purchases.getCustomerInfo();
-    return info.entitlements.active.containsKey(_watchEntitlement);
+    return info.entitlements.active.containsKey(kWatchEntitlement);
   } catch (e) {
     debugPrint('RevenueCat error: $e');
     return false;

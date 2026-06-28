@@ -357,7 +357,10 @@ class _WatchSection extends ConsumerWidget {
           if (!unlocked) ...[
             const SizedBox(height: 8),
             FilledButton.icon(
-              onPressed: () => showWatchPaywallSheet(context),
+              onPressed: () async {
+                await showWatchPaywallSheet(context);
+                ref.invalidate(watchUnlockedProvider);
+              },
               icon: const Icon(Icons.watch_rounded, size: 18),
               label: const Text('Unlock Watch App'),
               style: FilledButton.styleFrom(
