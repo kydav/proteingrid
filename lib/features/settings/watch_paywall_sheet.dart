@@ -3,28 +3,24 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proteingrid/core/router.dart';
 import 'package:proteingrid/core/theme.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 Future<void> showWatchPaywallSheet(BuildContext context) {
-  // Capture messenger from the parent scaffold before the modal opens so
-  // snackbars appear above the bottom sheet, not behind it.
-  final messenger = ScaffoldMessenger.of(context);
   return showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    shape: const RoundedRectangleBorder(
-      // borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-    ),
-    builder: (_) => _WatchPaywallSheet(messenger: messenger),
+    shape: const RoundedRectangleBorder(),
+    builder: (_) => const _WatchPaywallSheet(),
   );
 }
 
 class _WatchPaywallSheet extends StatefulWidget {
-  const _WatchPaywallSheet({required this.messenger});
-  final ScaffoldMessengerState messenger;
+  const _WatchPaywallSheet();
 
   @override
   State<_WatchPaywallSheet> createState() => _WatchPaywallSheetState();
@@ -35,6 +31,27 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
   bool _loadingPackage = true;
   bool _purchasing = false;
   bool _restoring = false;
+
+  Future<void> _showOverlayMessage({
+    required String message,
+    String title = 'Notice',
+  }) async {
+    final dialogContext = navigatorKey.currentContext;
+    if (dialogContext == null) return;
+    await showDialog<void>(
+      context: dialogContext,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -61,8 +78,9 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
   Future<void> _purchase() async {
     if (_purchasing) return;
     if (_package == null) {
-      widget.messenger.showSnackBar(
-        const SnackBar(content: Text('Product not available yet — check back soon.')),
+      await _showOverlayMessage(
+        title: 'Product unavailable',
+        message: 'Product not available yet - check back soon.',
       );
       return;
     }
@@ -73,9 +91,18 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } on PurchasesErrorCode catch (e) {
       if (e != PurchasesErrorCode.purchaseCancelledError && mounted) {
-        widget.messenger.showSnackBar(
-          SnackBar(content: Text('Purchase failed: $e')),
-        );
+        await _showOverlayMessage(title: 'Purchase failed', message: '$e');
+      }
+    } on Exception catch (e) {
+      if (mounted) {
+        if (e.toString().contains('cancelled')) {
+          await _showOverlayMessage(
+            title: 'Purchase cancelled',
+            message: 'No charge was made.',
+          );
+        } else {
+          await _showOverlayMessage(title: 'Purchase failed', message: '$e');
+        }
       }
     } finally {
       if (mounted) setState(() => _purchasing = false);
@@ -91,16 +118,15 @@ class _WatchPaywallSheetState extends State<_WatchPaywallSheet> {
         if (info.entitlements.active.containsKey('protein_grid_pro')) {
           Navigator.of(context).pop(true);
         } else {
-          widget.messenger.showSnackBar(
-            const SnackBar(content: Text('No Watch purchase found to restore.')),
+          await _showOverlayMessage(
+            title: 'Nothing to restore',
+            message: 'No purchase found to restore.',
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        widget.messenger.showSnackBar(
-          SnackBar(content: Text('Restore failed: $e')),
-        );
+        await _showOverlayMessage(title: 'Restore failed', message: '$e');
       }
     } finally {
       if (mounted) setState(() => _restoring = false);
