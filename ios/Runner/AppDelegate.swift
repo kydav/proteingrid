@@ -13,6 +13,7 @@ private let kPending  = "pg_pending_logs"
 
   private var watchChannel: FlutterMethodChannel?
   private var defaults: UserDefaults? { UserDefaults(suiteName: kAppGroup) }
+  private var lastSyncArgs: [String: Any] = [:]
 
   override func application(
     _ application: UIApplication,
@@ -45,12 +46,17 @@ private let kPending  = "pg_pending_logs"
   // MARK: - Sync
 
   private func syncToWatch(args: [String: Any]) {
+    lastSyncArgs = args
     if let d = defaults {
       if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
       if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
       if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
     }
+    pushContextToWatch(args: args)
+  }
 
+  private func pushContextToWatch(args: [String: Any]) {
+    guard WCSession.default.activationState == .activated else { return }
     guard WCSession.default.isPaired, WCSession.default.isWatchAppInstalled else { return }
     let ctx: [String: Any] = [
       kTotal:  args[kTotal]  ?? 0.0,
@@ -79,7 +85,10 @@ private let kPending  = "pg_pending_logs"
 
   func session(_ session: WCSession,
                activationDidCompleteWith state: WCSessionActivationState,
-               error: Error?) {}
+               error: Error?) {
+    guard state == .activated, !lastSyncArgs.isEmpty else { return }
+    DispatchQueue.main.async { self.pushContextToWatch(args: self.lastSyncArgs) }
+  }
 
   func sessionDidBecomeInactive(_ session: WCSession) {}
   func sessionDidDeactivate(_ session: WCSession) {
