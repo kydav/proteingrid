@@ -45,19 +45,21 @@ private let kPending  = "pg_pending_logs"
 
   // MARK: - Sync
 
+  private let kUnlocked = "pg_watch_unlocked"
+
   private func syncToWatch(args: [String: Any]) {
     lastSyncArgs = args
     if let d = defaults {
       if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
       if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
       if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
+      d.set(args["watch_unlocked"] as? Bool ?? false, forKey: kUnlocked)
     }
     pushContextToWatch(args: args)
   }
 
   private func pushContextToWatch(args: [String: Any]) {
     guard WCSession.default.activationState == .activated else { return }
-    guard WCSession.default.isPaired, WCSession.default.isWatchAppInstalled else { return }
     let ctx: [String: Any] = [
       kTotal:  args[kTotal]  ?? 0.0,
       kGoal:   Double((args[kGoal]  as? Int) ?? 150),
@@ -101,5 +103,19 @@ private let kPending  = "pg_pending_logs"
     DispatchQueue.main.async {
       self.watchChannel?.invokeMethod("watchLog", arguments: grams)
     }
+  }
+
+  func session(_ session: WCSession, didReceiveMessage message: [String: Any],
+               replyHandler: @escaping ([String: Any]) -> Void) {
+    guard message["action"] as? String == "requestState" else { return }
+    let unlocked = lastSyncArgs["watch_unlocked"] as? Bool
+      ?? defaults?.bool(forKey: kUnlocked)
+      ?? false
+    replyHandler([
+      kTotal:  lastSyncArgs[kTotal]  ?? defaults?.double(forKey: kTotal)  ?? 0.0,
+      kGoal:   lastSyncArgs[kGoal]   ?? defaults?.double(forKey: kGoal)   ?? 150.0,
+      kStreak: lastSyncArgs[kStreak] ?? defaults?.integer(forKey: kStreak) ?? 0,
+      "watch_unlocked": unlocked,
+    ])
   }
 }
