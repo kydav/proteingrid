@@ -57,7 +57,13 @@ class ProteinStore: NSObject, ObservableObject {
     // MARK: - Persistence
 
     private func loadFromDefaults() {
-        debugDefaultsValue = defaults == nil ? "nil" : (defaults!.bool(forKey: kUnlocked) ? "true" : "false")
+        if let d = defaults {
+            let ud = d.bool(forKey: kUnlocked) ? "T" : "F"
+            let ios = d.string(forKey: "pg_ios_trace") ?? "no-ios-write"
+            debugDefaultsValue = "ud=\(ud) \(ios)"
+        } else {
+            debugDefaultsValue = "AppGroup=nil"
+        }
         guard let d = defaults else { return }
         todayTotal = d.double(forKey: kTotal)
         let goal   = d.double(forKey: kGoal)
@@ -88,7 +94,8 @@ extension ProteinStore: WCSessionDelegate {
         }
         WCSession.default.sendMessage(["action": "requestState"], replyHandler: { [weak self] reply in
             DispatchQueue.main.async {
-                self?.debugContextKeys = reply.keys.joined(separator: ",")
+                let wu = reply["watch_unlocked"]
+                self?.debugContextKeys = "wu=\(String(describing: wu))"
                 self?.applyContext(reply)
             }
         }, errorHandler: { [weak self] err in
@@ -103,8 +110,13 @@ extension ProteinStore: WCSessionDelegate {
             self.debugSessionState = state == .activated ? "active" : "inactive(\(state.rawValue))"
             self.loadFromDefaults()
             let cached = session.receivedApplicationContext
-            self.debugContextKeys = cached.isEmpty ? "none" : cached.keys.joined(separator: ",")
-            if !cached.isEmpty { self.applyContext(cached) }
+            if cached.isEmpty {
+                self.debugContextKeys = "none"
+            } else {
+                let wu = cached["watch_unlocked"]
+                self.debugContextKeys = "ctx-wu=\(String(describing: wu))"
+                self.applyContext(cached)
+            }
         }
         guard state == .activated else { return }
         if session.isReachable {

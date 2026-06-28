@@ -48,27 +48,35 @@ private let kPending  = "pg_pending_logs"
   private let kUnlocked       = "pg_watch_unlocked"
   private let kCachedUnlocked = "pg_cached_watch_unlocked"  // survives restarts
 
+  private func boolFromArgs(_ args: [String: Any], key: String) -> Bool {
+    if let b = args[key] as? Bool    { return b }
+    if let n = args[key] as? NSNumber { return n.boolValue }
+    return false
+  }
+
   private func syncToWatch(args: [String: Any]) {
     lastSyncArgs = args
-    let unlocked = args["watch_unlocked"] as? Bool ?? false
-    // Persist in standard UserDefaults so we can push before Flutter starts next session
+    let unlocked = boolFromArgs(args, key: "watch_unlocked")
     UserDefaults.standard.set(unlocked, forKey: kCachedUnlocked)
     if let d = defaults {
       if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
       if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
       if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
       d.set(unlocked, forKey: kUnlocked)
+      // Debug trace — remove after diagnosis
+      d.set("wu=\(unlocked) raw=\(String(describing: args["watch_unlocked"]))", forKey: "pg_ios_trace")
     }
     pushContextToWatch(args: args)
   }
 
   private func pushContextToWatch(args: [String: Any]) {
     guard WCSession.default.activationState == .activated else { return }
+    let unlocked = boolFromArgs(args, key: "watch_unlocked")
     let ctx: [String: Any] = [
       kTotal:  args[kTotal]  ?? 0.0,
       kGoal:   Double((args[kGoal]  as? Int) ?? 150),
       kStreak: args[kStreak] ?? 0,
-      "watch_unlocked": args["watch_unlocked"] as? Bool ?? false,
+      "watch_unlocked": unlocked,
     ]
     try? WCSession.default.updateApplicationContext(ctx)
   }
