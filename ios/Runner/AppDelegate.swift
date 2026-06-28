@@ -23,24 +23,11 @@ private let kPending  = "pg_pending_logs"
       WCSession.default.delegate = self
       WCSession.default.activate()
     }
+    // Write startup marker before Flutter init — tells Watch whether iOS can reach the App Group
+    defaults?.set("launched", forKey: "pg_ios_launched")
+
     GeneratedPluginRegistrant.register(with: self)
-    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    if let controller = window?.rootViewController as? FlutterViewController {
-      watchChannel = FlutterMethodChannel(
-        name: "app.auaha.proteingrid/watch",
-        binaryMessenger: controller.binaryMessenger
-      )
-      watchChannel?.setMethodCallHandler { [weak self] call, result in
-        if call.method == "syncWatch", let args = call.arguments as? [String: Any] {
-          self?.syncToWatch(args: args)
-          result(nil)
-        } else {
-          result(FlutterMethodNotImplemented)
-        }
-      }
-      drainPendingWatchLogs()
-    }
-    return result
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   // MARK: - Sync
@@ -135,6 +122,27 @@ private let kPending  = "pg_pending_logs"
       kGoal:   lastSyncArgs[kGoal]   ?? defaults?.double(forKey: kGoal)   ?? 150.0,
       kStreak: lastSyncArgs[kStreak] ?? defaults?.integer(forKey: kStreak) ?? 0,
       "watch_unlocked": unlocked,
+      "had_sync": !lastSyncArgs.isEmpty,
     ])
+  }
+
+  // MARK: - Channel setup (called by SceneDelegate after scene connects)
+
+  func setupWatchChannel(with vc: FlutterViewController) {
+    defaults?.set("vc-ok", forKey: "pg_channel_status")
+    UserDefaults.standard.set("vc-ok", forKey: "pg_channel_status")
+    watchChannel = FlutterMethodChannel(
+      name: "app.auaha.proteingrid/watch",
+      binaryMessenger: vc.binaryMessenger
+    )
+    watchChannel?.setMethodCallHandler { [weak self] call, result in
+      if call.method == "syncWatch", let args = call.arguments as? [String: Any] {
+        self?.syncToWatch(args: args)
+        result(nil)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    drainPendingWatchLogs()
   }
 }

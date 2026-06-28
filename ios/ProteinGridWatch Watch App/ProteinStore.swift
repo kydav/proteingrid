@@ -59,8 +59,10 @@ class ProteinStore: NSObject, ObservableObject {
     private func loadFromDefaults() {
         if let d = defaults {
             let ud = d.bool(forKey: kUnlocked) ? "T" : "F"
-            let ios = d.string(forKey: "pg_ios_trace") ?? "no-ios-write"
-            debugDefaultsValue = "ud=\(ud) \(ios)"
+            let launched = d.string(forKey: "pg_ios_launched") ?? "?"
+            let channel  = d.string(forKey: "pg_channel_status") ?? "?"
+            let trace    = d.string(forKey: "pg_ios_trace") ?? "no-write"
+            debugDefaultsValue = "ud=\(ud) L=\(launched) C=\(channel) T=\(trace)"
         } else {
             debugDefaultsValue = "AppGroup=nil"
         }
@@ -95,7 +97,8 @@ extension ProteinStore: WCSessionDelegate {
         WCSession.default.sendMessage(["action": "requestState"], replyHandler: { [weak self] reply in
             DispatchQueue.main.async {
                 let wu = reply["watch_unlocked"]
-                self?.debugContextKeys = "wu=\(String(describing: wu))"
+                let hs = reply["had_sync"] as? Bool ?? false
+                self?.debugContextKeys = "wu=\(String(describing: wu)) hs=\(hs)"
                 self?.applyContext(reply)
             }
         }, errorHandler: { [weak self] err in
