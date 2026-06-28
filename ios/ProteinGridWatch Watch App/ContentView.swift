@@ -25,12 +25,21 @@ struct ContentView: View {
                 CustomLogView(store: store)
             }
         } else {
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 28))
                 Text("Unlock in the\nProteinGrid app")
                     .multilineTextAlignment(.center)
-                    .font(.system(size: 13))
+                    .font(.system(size: 12))
+                Divider()
+                Text("session: \(store.debugSessionState)")
+                    .font(.system(size: 9, design: .monospaced))
+                Text("ctx: \(store.debugContextKeys)")
+                    .font(.system(size: 9, design: .monospaced))
+                Text("ud: \(store.debugDefaultsValue)")
+                    .font(.system(size: 9, design: .monospaced))
+                Button("Request State") { store.requestStateFromPhone() }
+                    .font(.system(size: 10))
             }
             .foregroundColor(.gray)
         }
