@@ -15,11 +15,6 @@ class ProteinStore: NSObject, ObservableObject {
     @Published var streak: Int        = 0
     @Published var isUnlocked: Bool   = false
 
-    // Debug properties — remove after diagnosing
-    @Published var debugSessionState: String = "?"
-    @Published var debugContextKeys: String  = "none"
-    @Published var debugDefaultsValue: String = "?"
-
     private var defaults: UserDefaults? { UserDefaults(suiteName: kAppGroup) }
 
     override init() {
@@ -57,15 +52,6 @@ class ProteinStore: NSObject, ObservableObject {
     // MARK: - Persistence
 
     private func loadFromDefaults() {
-        if let d = defaults {
-            let ud = d.bool(forKey: kUnlocked) ? "T" : "F"
-            let launched = d.string(forKey: "pg_ios_launched") ?? "?"
-            let channel  = d.string(forKey: "pg_channel_status") ?? "?"
-            let trace    = d.string(forKey: "pg_ios_trace") ?? "no-write"
-            debugDefaultsValue = "ud=\(ud) L=\(launched) C=\(channel) T=\(trace)"
-        } else {
-            debugDefaultsValue = "AppGroup=nil"
-        }
         guard let d = defaults else { return }
         todayTotal = d.double(forKey: kTotal)
         let goal   = d.double(forKey: kGoal)
@@ -88,46 +74,18 @@ class ProteinStore: NSObject, ObservableObject {
 // MARK: - WCSessionDelegate
 
 extension ProteinStore: WCSessionDelegate {
-    func requestStateFromPhone() {
-        guard WCSession.default.activationState == .activated,
-              WCSession.default.isReachable else {
-            debugSessionState = "not reachable"
-            return
-        }
-        WCSession.default.sendMessage(["action": "requestState"], replyHandler: { [weak self] reply in
-            DispatchQueue.main.async {
-                let wu = reply["watch_unlocked"]
-                let hs = reply["had_sync"] as? Bool ?? false
-                self?.debugContextKeys = "wu=\(String(describing: wu)) hs=\(hs)"
-                self?.applyContext(reply)
-            }
-        }, errorHandler: { [weak self] err in
-            DispatchQueue.main.async { self?.debugSessionState = "err:\(err.localizedDescription)" }
-        })
-    }
-
     func session(_ session: WCSession,
                  activationDidCompleteWith state: WCSessionActivationState,
                  error: Error?) {
         DispatchQueue.main.async {
-            self.debugSessionState = state == .activated ? "active" : "inactive(\(state.rawValue))"
             self.loadFromDefaults()
             let cached = session.receivedApplicationContext
-            if cached.isEmpty {
-                self.debugContextKeys = "none"
-            } else {
-                let wu = cached["watch_unlocked"]
-                self.debugContextKeys = "ctx-wu=\(String(describing: wu))"
-                self.applyContext(cached)
-            }
+            if !cached.isEmpty { self.applyContext(cached) }
         }
         guard state == .activated else { return }
         if session.isReachable {
             session.sendMessage(["action": "requestState"], replyHandler: { [weak self] reply in
-                DispatchQueue.main.async {
-                    self?.debugContextKeys = "req:\(reply.keys.joined(separator: ","))"
-                    self?.applyContext(reply)
-                }
+                DispatchQueue.main.async { self?.applyContext(reply) }
             }, errorHandler: nil)
         }
     }

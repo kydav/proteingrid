@@ -31,15 +31,6 @@ struct ContentView: View {
                 Text("Unlock in the\nProteinGrid app")
                     .multilineTextAlignment(.center)
                     .font(.system(size: 12))
-                Divider()
-                Text("session: \(store.debugSessionState)")
-                    .font(.system(size: 9, design: .monospaced))
-                Text("ctx: \(store.debugContextKeys)")
-                    .font(.system(size: 9, design: .monospaced))
-                Text("ud: \(store.debugDefaultsValue)")
-                    .font(.system(size: 9, design: .monospaced))
-                Button("Request State") { store.requestStateFromPhone() }
-                    .font(.system(size: 10))
             }
             .foregroundColor(.gray)
         }

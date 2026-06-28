@@ -23,9 +23,6 @@ private let kPending  = "pg_pending_logs"
       WCSession.default.delegate = self
       WCSession.default.activate()
     }
-    // Write startup marker before Flutter init — tells Watch whether iOS can reach the App Group
-    defaults?.set("launched", forKey: "pg_ios_launched")
-
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -50,8 +47,6 @@ private let kPending  = "pg_pending_logs"
       if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
       if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
       d.set(unlocked, forKey: kUnlocked)
-      // Debug trace — remove after diagnosis
-      d.set("wu=\(unlocked) raw=\(String(describing: args["watch_unlocked"]))", forKey: "pg_ios_trace")
     }
     pushContextToWatch(args: args)
   }
@@ -122,15 +117,12 @@ private let kPending  = "pg_pending_logs"
       kGoal:   lastSyncArgs[kGoal]   ?? defaults?.double(forKey: kGoal)   ?? 150.0,
       kStreak: lastSyncArgs[kStreak] ?? defaults?.integer(forKey: kStreak) ?? 0,
       "watch_unlocked": unlocked,
-      "had_sync": !lastSyncArgs.isEmpty,
     ])
   }
 
   // MARK: - Channel setup (called by SceneDelegate after scene connects)
 
   func setupWatchChannel(with vc: FlutterViewController) {
-    defaults?.set("vc-ok", forKey: "pg_channel_status")
-    UserDefaults.standard.set("vc-ok", forKey: "pg_channel_status")
     watchChannel = FlutterMethodChannel(
       name: "app.auaha.proteingrid/watch",
       binaryMessenger: vc.binaryMessenger
