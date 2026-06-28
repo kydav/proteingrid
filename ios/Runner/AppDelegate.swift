@@ -45,15 +45,19 @@ private let kPending  = "pg_pending_logs"
 
   // MARK: - Sync
 
-  private let kUnlocked = "pg_watch_unlocked"
+  private let kUnlocked       = "pg_watch_unlocked"
+  private let kCachedUnlocked = "pg_cached_watch_unlocked"  // survives restarts
 
   private func syncToWatch(args: [String: Any]) {
     lastSyncArgs = args
+    let unlocked = args["watch_unlocked"] as? Bool ?? false
+    // Persist in standard UserDefaults so we can push before Flutter starts next session
+    UserDefaults.standard.set(unlocked, forKey: kCachedUnlocked)
     if let d = defaults {
       if let v = args[kTotal]  as? Double { d.set(v, forKey: kTotal) }
       if let v = args[kGoal]   as? Int    { d.set(Double(v), forKey: kGoal) }
       if let v = args[kStreak] as? Int    { d.set(v, forKey: kStreak) }
-      d.set(args["watch_unlocked"] as? Bool ?? false, forKey: kUnlocked)
+      d.set(unlocked, forKey: kUnlocked)
     }
     pushContextToWatch(args: args)
   }
@@ -88,8 +92,15 @@ private let kPending  = "pg_pending_logs"
   func session(_ session: WCSession,
                activationDidCompleteWith state: WCSessionActivationState,
                error: Error?) {
-    guard state == .activated, !lastSyncArgs.isEmpty else { return }
-    DispatchQueue.main.async { self.pushContextToWatch(args: self.lastSyncArgs) }
+    guard state == .activated else { return }
+    if !lastSyncArgs.isEmpty {
+      DispatchQueue.main.async { self.pushContextToWatch(args: self.lastSyncArgs) }
+    } else if UserDefaults.standard.bool(forKey: kCachedUnlocked) {
+      // Flutter hasn't started yet but we know the user is subscribed — push immediately
+      DispatchQueue.main.async {
+        try? WCSession.default.updateApplicationContext(["watch_unlocked": true])
+      }
+    }
   }
 
   func sessionDidBecomeInactive(_ session: WCSession) {}
@@ -108,9 +119,9 @@ private let kPending  = "pg_pending_logs"
   func session(_ session: WCSession, didReceiveMessage message: [String: Any],
                replyHandler: @escaping ([String: Any]) -> Void) {
     guard message["action"] as? String == "requestState" else { return }
-    let unlocked = lastSyncArgs["watch_unlocked"] as? Bool
+    let unlocked = (lastSyncArgs["watch_unlocked"] as? Bool)
       ?? defaults?.bool(forKey: kUnlocked)
-      ?? false
+      ?? UserDefaults.standard.bool(forKey: kCachedUnlocked)
     replyHandler([
       kTotal:  lastSyncArgs[kTotal]  ?? defaults?.double(forKey: kTotal)  ?? 0.0,
       kGoal:   lastSyncArgs[kGoal]   ?? defaults?.double(forKey: kGoal)   ?? 150.0,
