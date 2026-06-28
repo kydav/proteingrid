@@ -77,7 +77,13 @@ extension ProteinStore: WCSessionDelegate {
     func session(_ session: WCSession,
                  activationDidCompleteWith state: WCSessionActivationState,
                  error: Error?) {
-        DispatchQueue.main.async { self.loadFromDefaults() }
+        DispatchQueue.main.async {
+            self.loadFromDefaults()
+            // didReceiveApplicationContext is NOT called on launch for cached context;
+            // read it explicitly here so unlock state survives app restarts.
+            let cached = session.receivedApplicationContext
+            if !cached.isEmpty { self.applyContext(cached) }
+        }
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
