@@ -11,6 +11,7 @@ import 'package:proteingrid/features/settings/presets_editor.dart';
 Future<bool> showQuickLogSheet(
   BuildContext context, {
   double? prefilledGrams,
+  String? prefilledLabel,
 }) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
@@ -19,14 +20,18 @@ Future<bool> showQuickLogSheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
-    builder: (_) => _QuickLogSheet(prefilledGrams: prefilledGrams),
+    builder: (_) => _QuickLogSheet(
+      prefilledGrams: prefilledGrams,
+      prefilledLabel: prefilledLabel,
+    ),
   );
   return result ?? false;
 }
 
 class _QuickLogSheet extends ConsumerStatefulWidget {
-  const _QuickLogSheet({this.prefilledGrams});
+  const _QuickLogSheet({this.prefilledGrams, this.prefilledLabel});
   final double? prefilledGrams;
+  final String? prefilledLabel;
 
   @override
   ConsumerState<_QuickLogSheet> createState() => _QuickLogSheetState();
@@ -41,6 +46,9 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
   @override
   void initState() {
     super.initState();
+    if (widget.prefilledLabel?.isNotEmpty ?? false) {
+      _labelCtrl.text = widget.prefilledLabel!;
+    }
     if (widget.prefilledGrams != null && widget.prefilledGrams! > 0) {
       _gramsCtrl.text = widget.prefilledGrams!.toStringAsFixed(0);
       _showCustom = true;

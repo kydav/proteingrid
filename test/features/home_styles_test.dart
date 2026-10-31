@@ -50,9 +50,7 @@ void main() {
         tester.view.physicalSize = const Size(375 * 3, 667 * 3);
         tester.view.devicePixelRatio = 3;
         addTearDown(tester.view.reset);
-        await tester.pumpWidget(
-          MaterialApp(home: Scaffold(body: build(d))),
-        );
+        await tester.pumpWidget(MaterialApp(home: Scaffold(body: build(d))));
         await tester.pump(const Duration(seconds: 1));
         FlutterError.onError = previous;
         final overflows = errors

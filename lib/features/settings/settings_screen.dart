@@ -8,6 +8,7 @@ import 'package:proteingrid/core/home_style.dart';
 import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
+import 'package:proteingrid/data/presets.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:proteingrid/features/pro/pro_paywall_sheet.dart';
 import 'package:proteingrid/features/settings/presets_editor.dart';
@@ -301,7 +302,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // ── Quick actions ───────────────────────────────────────────────
           _sectionHeader(context, 'Quick action shortcuts'),
           Text(
-            'Long-press the ProteinGrid app icon on your home screen to instantly log common amounts.',
+            'Long-press the Protein Grid icon on your home screen to log in one tap. '
+            'Once you edit your quick-log buttons, the first three show here too.',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -321,7 +323,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           const SizedBox(height: 8),
-          ...['Log 30g', 'Log 40g', 'Log 50g', 'Custom amount'].map(
+          ...[
+            for (final p in shortcutPresets(ref.watch(presetsProvider)))
+              shortcutTitle(p),
+            'Custom amount',
+          ].map(
             (label) => ListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,

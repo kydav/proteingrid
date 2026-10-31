@@ -276,8 +276,11 @@ void main() {
       final container = _makeContainer();
       addTearDown(container.dispose);
 
-      container.read(pendingQuickActionGramsProvider.notifier).state = 40.0;
-      expect(container.read(pendingQuickActionGramsProvider), 40.0);
+      container.read(pendingQuickActionGramsProvider.notifier).state = (
+        grams: 40.0,
+        label: null,
+      );
+      expect(container.read(pendingQuickActionGramsProvider)?.grams, 40.0);
 
       container.read(pendingQuickActionGramsProvider.notifier).state = null;
       expect(container.read(pendingQuickActionGramsProvider), isNull);

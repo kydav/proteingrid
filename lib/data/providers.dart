@@ -79,7 +79,13 @@ final recentLabelsProvider = Provider<List<String>>((ref) {
 
 // Used by the quick action handler to pass a pre-filled gram value
 // to the home screen so it can auto-open the log sheet.
-final pendingQuickActionGramsProvider = StateProvider<double?>((ref) => null);
+/// A home-screen shortcut's amount (0 = open custom entry) and, for a named
+/// quick button, its name.
+typedef PendingQuickLog = ({double grams, String? label});
+
+final pendingQuickActionGramsProvider = StateProvider<PendingQuickLog?>(
+  (ref) => null,
+);
 
 /// Whether today's goal is hit. Reminders skip the rest of a day once it is.
 final goalHitTodayProvider = Provider<bool>(

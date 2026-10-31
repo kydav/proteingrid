@@ -7,6 +7,7 @@ import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/core/router.dart';
 import 'package:proteingrid/core/theme.dart';
+import 'package:proteingrid/data/presets.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:proteingrid/features/pro/pro_paywall_sheet.dart';
@@ -73,31 +74,61 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
     await showProPaywall(context, reason: ProReason.grid);
   }
 
+  static const _quickActions = QuickActions();
+
   void _initQuickActions() {
-    const quickActions = QuickActions();
-
-    quickActions.initialize((shortcutType) {
-      double? grams;
-      if (shortcutType == 'log_30g') grams = 30;
-      if (shortcutType == 'log_40g') grams = 40;
-      if (shortcutType == 'log_50g') grams = 50;
-      if (shortcutType == 'log_custom') grams = 0;
-
-      if (grams != null) {
-        ref.read(pendingQuickActionGramsProvider.notifier).state = grams;
+    _quickActions.initialize((type) {
+      final pending = _parseShortcut(type);
+      if (pending != null) {
+        ref.read(pendingQuickActionGramsProvider.notifier).state = pending;
       }
     });
+    // The shortcuts follow the quick-log buttons (Pro users can edit those).
+    ref.listenManual<List<QuickPreset>>(
+      presetsProvider,
+      (_, presets) => _setShortcuts(presets).ignore(),
+      fireImmediately: true,
+    );
+  }
 
-    quickActions.setShortcutItems(const [
-      ShortcutItem(type: 'log_30g', localizedTitle: 'Log 30g', icon: 'egg'),
-      ShortcutItem(type: 'log_40g', localizedTitle: 'Log 40g', icon: 'shake'),
-      ShortcutItem(type: 'log_50g', localizedTitle: 'Log 50g', icon: 'chicken'),
-      ShortcutItem(
+  /// Long-press shortcuts: three amounts plus "Custom amount". With the
+  /// default buttons that's 30/40/50g as before; once the buttons are
+  /// edited, it's the first three of them, with their names.
+  Future<void> _setShortcuts(List<QuickPreset> presets) async {
+    final picks = shortcutPresets(presets);
+    const icons = ['egg', 'shake', 'chicken'];
+    await _quickActions.setShortcutItems([
+      for (var i = 0; i < picks.length; i++)
+        ShortcutItem(
+          // The amount and name travel in the type, so the handler needs no
+          // lookup (and old shortcuts still work after the buttons change).
+          type: 'log|${picks[i].grams}|${picks[i].label}',
+          localizedTitle: shortcutTitle(picks[i]),
+          icon: icons[i],
+        ),
+      const ShortcutItem(
         type: 'log_custom',
         localizedTitle: 'Custom amount',
         icon: 'plus',
       ),
     ]);
+  }
+
+  static PendingQuickLog? _parseShortcut(String type) {
+    if (type == 'log_custom') return (grams: 0, label: null);
+    // Shortcuts from before they followed the buttons.
+    final legacy = RegExp(r'^log_(\d+)g$').firstMatch(type);
+    if (legacy != null) {
+      return (grams: double.parse(legacy.group(1)!), label: null);
+    }
+    final parts = type.split('|');
+    if (parts.length >= 2 && parts.first == 'log') {
+      final grams = double.tryParse(parts[1]);
+      if (grams == null) return null;
+      final label = parts.skip(2).join('|');
+      return (grams: grams, label: label.isEmpty ? null : label);
+    }
+    return null;
   }
 
   @override

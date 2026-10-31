@@ -66,3 +66,22 @@ class PresetsNotifier extends StateNotifier<List<QuickPreset>> {
 
   Future<void> reset() => save(kDefaultPresets);
 }
+
+/// The long-press home-screen shortcuts (before "Custom amount"): 30/40/50g
+/// with the default buttons, or the first three once they've been edited.
+List<QuickPreset> shortcutPresets(List<QuickPreset> presets) {
+  String key(QuickPreset p) => '${p.grams}|${p.label}';
+  final edited =
+      presets.length != kDefaultPresets.length ||
+      [
+        for (var i = 0; i < presets.length; i++) i,
+      ].any((i) => key(presets[i]) != key(kDefaultPresets[i]));
+  return edited
+      ? presets.take(3).toList()
+      : const [QuickPreset(30), QuickPreset(40), QuickPreset(50)];
+}
+
+/// How a shortcut reads on the home screen: "Log 40g" or "Shake · 40g".
+String shortcutTitle(QuickPreset p) => p.label.isEmpty
+    ? 'Log ${p.grams.toStringAsFixed(0)}g'
+    : '${p.label} · ${p.grams.toStringAsFixed(0)}g';

@@ -289,15 +289,21 @@ void main() {
       final container = _container();
       addTearDown(container.dispose);
 
-      container.read(pendingQuickActionGramsProvider.notifier).state = 30.0;
-      expect(container.read(pendingQuickActionGramsProvider), 30.0);
+      container.read(pendingQuickActionGramsProvider.notifier).state = (
+        grams: 30.0,
+        label: null,
+      );
+      expect(container.read(pendingQuickActionGramsProvider)?.grams, 30.0);
     });
 
     test('can be cleared back to null', () {
       final container = _container();
       addTearDown(container.dispose);
 
-      container.read(pendingQuickActionGramsProvider.notifier).state = 40.0;
+      container.read(pendingQuickActionGramsProvider.notifier).state = (
+        grams: 40.0,
+        label: null,
+      );
       container.read(pendingQuickActionGramsProvider.notifier).state = null;
       expect(container.read(pendingQuickActionGramsProvider), isNull);
     });

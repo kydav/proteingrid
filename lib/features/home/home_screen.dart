@@ -32,7 +32,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final pending = ref.read(pendingQuickActionGramsProvider);
     if (pending != null) {
       ref.read(pendingQuickActionGramsProvider.notifier).state = null;
-      showQuickLogSheet(context, prefilledGrams: pending);
+      showQuickLogSheet(
+        context,
+        prefilledGrams: pending.grams,
+        prefilledLabel: pending.label,
+      );
     }
   }
 
@@ -49,7 +53,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.listen(pendingQuickActionGramsProvider, (_, next) {
       if (next != null && mounted) {
         ref.read(pendingQuickActionGramsProvider.notifier).state = null;
-        showQuickLogSheet(context, prefilledGrams: next);
+        showQuickLogSheet(
+          context,
+          prefilledGrams: next.grams,
+          prefilledLabel: next.label,
+        );
       }
     });
 
