@@ -1,4 +1,4 @@
-"""Protein Grid App Store screenshots (6.9" 1320x2868 + 6.5" 1284x2778)."""
+"""Protein Grid App Store screenshots: 6.9" 1320x2868, 6.5" 1284x2778, 6.3" 1206x2622."""
 import os
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -113,6 +113,11 @@ def save(im, name):
     s = im.convert('RGB').resize((int(W * 2778 / H), 2778), Image.LANCZOS)
     x = (s.width - 1284) // 2
     s.crop((x, 0, x + 1284, 2778)).save(os.path.join(out, '6.5', name), optimize=True)
+    # 6.1"/6.3" slot: 1206x2622.
+    os.makedirs(os.path.join(out, '6.3'), exist_ok=True)
+    s = im.convert('RGB').resize((round(W * 2622 / H), 2622), Image.LANCZOS)
+    x = (s.width - 1206) // 2
+    s.crop((x, 0, x + 1206, 2622)).save(os.path.join(out, '6.3', name), optimize=True)
 
 
 # 1. THE GRID
