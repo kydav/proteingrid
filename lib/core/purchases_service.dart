@@ -13,7 +13,7 @@ const _rcAppleKey = 'appl_UUFunMPTPeWOMkSkMxVykyclwiP';
 const _rcGoogleKey = 'goog_sUyShQjFaIPbApbjabCyzbtlrjn';
 
 /// The entitlement Pro unlocks (RevenueCat).
-const kProEntitlement = 'ProteinGrid Pro';
+const kProEntitlement = 'protein_grid_pro';
 
 String get _rcKey => Platform.isIOS ? _rcAppleKey : _rcGoogleKey;
 
