@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:proteingrid/core/home_style.dart';
 import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
@@ -190,6 +191,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           const _ProSection(),
+          const SizedBox(height: 24),
+
+          // ── Look ────────────────────────────────────────────────────────
+          _sectionHeader(context, 'Today screen style'),
+          const _StylePicker(),
           const SizedBox(height: 24),
 
           // ── Daily goal ──────────────────────────────────────────────────
@@ -418,6 +424,96 @@ class _ProSection extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// The three Today looks. Block Meter is free; the others are Pro while
+/// [kStylesArePro] is on.
+class _StylePicker extends ConsumerWidget {
+  const _StylePicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(homeStyleProvider);
+    final pro = ref.watch(isProNowProvider);
+    return Column(
+      children: [
+        for (final style in HomeStyle.values)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () async {
+                final locked =
+                    kStylesArePro && style != HomeStyle.blockMeter && !pro;
+                if (locked &&
+                    !await requirePro(context, ref, reason: ProReason.styles)) {
+                  return;
+                }
+                await ref.read(homeStyleProvider.notifier).set(style);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: style.palette.bg,
+                  border: Border.all(
+                    color: style == current
+                        ? style.palette.accent
+                        : style.palette.line,
+                    width: style == current ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // A swatch of the style's two colours.
+                    for (final c in [
+                      style.palette.accent,
+                      style.palette.accent2,
+                    ])
+                      Container(
+                        width: 14,
+                        height: 28,
+                        margin: const EdgeInsets.only(right: 4),
+                        color: c,
+                      ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            style.label,
+                            style: TextStyle(
+                              color: style.palette.accent,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            style.tagline,
+                            style: TextStyle(
+                              color: style.palette.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (style == current)
+                      Icon(Icons.check_rounded, color: style.palette.accent)
+                    else if (kStylesArePro &&
+                        style != HomeStyle.blockMeter &&
+                        !pro)
+                      Icon(
+                        Icons.lock_rounded,
+                        size: 18,
+                        color: style.palette.muted,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

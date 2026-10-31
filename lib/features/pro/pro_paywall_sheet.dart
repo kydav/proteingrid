@@ -14,6 +14,7 @@ enum ProReason {
   history('Go back further', 'Your full history, every day you logged.'),
   presets('Make the buttons yours', 'Your own one-tap amounts and names.'),
   reminders('More reminders', 'Nudges through the day, not just one.'),
+  styles('Change the look', 'Arcade Cabinet and Neon Vector styles.'),
   general('ProteinGrid Pro', 'Everything, for as long as you use it.');
 
   const ProReason(this.title, this.subtitle);
@@ -54,6 +55,7 @@ const _features = [
   'Full history, every day you have logged',
   'Your own quick-log buttons',
   'Up to 3 daily reminders',
+  'Arcade Cabinet + Neon Vector looks',
   'Support a tiny indie app',
 ];
 
