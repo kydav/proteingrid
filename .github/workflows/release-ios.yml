@@ -114,7 +114,17 @@ jobs:
             echo "Re-signed app with embedded Swift dylibs"
           fi
 
-          cd build/ios/ipa && zip -r Runner.ipa Payload SwiftSupport && rm -rf Payload SwiftSupport
+          # Only ship SwiftSupport when it has something in it: an empty folder
+          # is rejected (ITMS-90424). With the Watch app gone and iOS shipping
+          # the Swift runtime, swift-stdlib-tool usually finds nothing to copy.
+          cd build/ios/ipa
+          if [ -n "$(ls -A SwiftSupport/iphoneos 2>/dev/null)" ]; then
+            zip -r Runner.ipa Payload SwiftSupport
+          else
+            echo "No Swift dylibs needed; packaging without SwiftSupport"
+            zip -r Runner.ipa Payload
+          fi
+          rm -rf Payload SwiftSupport
           echo "IPA packaged: $(ls -lh Runner.ipa)"
 
       - name: Upload to TestFlight
