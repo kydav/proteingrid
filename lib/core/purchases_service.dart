@@ -5,12 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-const _rcAppleKey = 'appl_eKcZZfLlgnahqtlqmStzzaqJLYc';
+const _rcAppleKey = 'appl_UUFunMPTPeWOMkSkMxVykyclwiP';
 
 /// RevenueCat's Google Play public key (starts `goog_`). Empty until the Play
 /// products exist; until then Android has no store to buy from, so Pro is
 /// simply on there rather than locked behind a purchase that can't happen.
-const _rcGoogleKey = '';
+const _rcGoogleKey = 'goog_sUyShQjFaIPbApbjabCyzbtlrjn';
 
 /// The entitlement Pro unlocks (RevenueCat).
 const kProEntitlement = 'ProteinGrid Pro';
