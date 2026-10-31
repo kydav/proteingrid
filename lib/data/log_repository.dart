@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:uuid/uuid.dart';
@@ -30,6 +32,44 @@ class LogRepository {
   }
 
   Future<void> remove(String id) => _box.delete(id);
+
+  /// Debug builds only: a believable year of logs (most days hit [goal]) so
+  /// screenshots show a lit-up Grid. Ids start with `sample-` so
+  /// [clearSampleYear] can take them out again.
+  Future<void> fillSampleYear({required int goal}) async {
+    final rand = math.Random(7);
+    final now = DateTime.now();
+    final entries = <String, ProteinLog>{};
+    for (var d = 300; d >= 1; d--) {
+      final day = DateTime(now.year, now.month, now.day - d);
+      // About three in four days hit the goal; streaky, like real life.
+      final hit = rand.nextDouble() < (d % 40 < 6 ? 0.2 : 0.8);
+      final target = hit
+          ? goal * (1.0 + rand.nextDouble() * 0.2)
+          : goal * (0.3 + rand.nextDouble() * 0.6);
+      var logged = 0.0;
+      var hour = 7;
+      while (logged < target && hour < 21) {
+        final g = (20 + rand.nextInt(5) * 5).toDouble();
+        final t = DateTime(
+          day.year,
+          day.month,
+          day.day,
+          hour,
+          rand.nextInt(60),
+        );
+        final id = 'sample-${t.millisecondsSinceEpoch}';
+        entries[id] = ProteinLog(id: id, grams: g, timestamp: t);
+        logged += g;
+        hour += 2 + rand.nextInt(2);
+      }
+    }
+    await _box.putAll(entries);
+  }
+
+  Future<void> clearSampleYear() async {
+    await _box.deleteAll(_box.keys.where((k) => '$k'.startsWith('sample-')));
+  }
 
   List<String> recentLabels() {
     final seen = <String>{};

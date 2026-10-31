@@ -53,5 +53,11 @@ class ProNotifier extends AsyncNotifier<bool> {
 /// Pro, or false while it's still being checked (never flashes Pro features
 /// open and then shut).
 final isProNowProvider = Provider<bool>(
-  (ref) => ref.watch(isProProvider).valueOrNull ?? false,
+  (ref) =>
+      (kDebugMode && ref.watch(debugPretendProProvider)) ||
+      (ref.watch(isProProvider).valueOrNull ?? false),
 );
+
+/// Debug builds only (Settings → Debug): show Pro without buying it, for
+/// screenshots and testing. Ignored in release builds.
+final debugPretendProProvider = StateProvider<bool>((_) => false);

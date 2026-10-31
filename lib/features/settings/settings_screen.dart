@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -359,6 +360,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               minimumSize: const Size.fromHeight(48),
             ),
           ),
+          // Debug builds only: fill a year so screenshots show a lit Grid.
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            _sectionHeader(context, 'Debug'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Pretend Pro'),
+              value: ref.watch(debugPretendProProvider),
+              onChanged: (v) =>
+                  ref.read(debugPretendProProvider.notifier).state = v,
+            ),
+            OutlinedButton(
+              onPressed: () async {
+                await LogRepository().fillSampleYear(
+                  goal: ref.read(dailyGoalProvider),
+                );
+                ref.invalidate(todayLogsProvider);
+              },
+              child: const Text('Fill a sample year'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () async {
+                await LogRepository().clearSampleYear();
+                ref.invalidate(todayLogsProvider);
+              },
+              child: const Text('Clear sample data'),
+            ),
+          ],
           const SizedBox(height: 32),
         ],
       ),
