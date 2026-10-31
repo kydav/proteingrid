@@ -222,18 +222,24 @@ class _WeekChart extends StatelessWidget {
                               ),
                             ),
                           const SizedBox(height: 2),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            height: math.max(4, 90 * frac),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? cs.primary
-                                  : hitGoal
-                                  ? cs.tertiary.withValues(alpha: 0.7)
-                                  : d.total > 0
-                                  ? cs.primary.withValues(alpha: 0.4)
-                                  : cs.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(4),
+                          // Fills what's left after the labels, so a
+                          // full-height bar never overflows the chart.
+                          Flexible(
+                            child: FractionallySizedBox(
+                              heightFactor: math.max(0.04, frac),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? cs.primary
+                                      : hitGoal
+                                      ? cs.tertiary.withValues(alpha: 0.7)
+                                      : d.total > 0
+                                      ? cs.primary.withValues(alpha: 0.4)
+                                      : cs.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 4),
