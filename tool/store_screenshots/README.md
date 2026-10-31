@@ -16,4 +16,6 @@
 
 iPad: put the six iPad 13" shots in `ipad/raw0-5.png` (0 Neon Vector, 1 Arcade, 2 home menu, 3 Block Meter goal hit, 4 log sheet, 5 History) and run `python3 make_ipad.py` → `out/ipad` (2064×2752). `banners.py` makes the App Store header (3840×1646) and search image (1920×1280).
 
+Android: put five shots in `android/raw0-4.png` (0 Neon Vector, 1 Arcade, 2 History, 3 Block Meter goal hit, 4 log sheet) and run `python3 make_android.py` → `out/android` (1080×1920 + the 1024×500 Play feature graphic).
+
 Raw shots, fonts and output are gitignored.
