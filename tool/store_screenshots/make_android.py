@@ -111,7 +111,7 @@ def save(im, name):
 
 
 # Android raws: 0 Neon Vector, 1 Arcade Cabinet, 2 History, 3 Block Meter
-# goal hit, 4 log sheet. Phones run off the bottom edge, as is usual on Play.
+# goal hit, 4 log sheet, 5 launcher long-press menu. Phones run off the bottom edge, as is usual on Play.
 PH = 820
 
 im = background(GREEN)
@@ -131,11 +131,17 @@ y = caption(im, ['HIT YOUR GOAL.', 'EVERY DAY.'], 'Fill the meter. Keep the stre
 phone(im, raw(3), W // 2, y + 20, PH, GREEN)
 save(im, '03_goal.png')
 
+im = background(GREEN)
+y = caption(im, ['LOG FROM YOUR', 'HOME SCREEN'], 'Long-press the icon. Done.', GREEN, top=130)
+# Zoom in on the icon and its shortcut menu.
+phone(im, raw(5).crop((180, 1060, 1080, 2080)), W // 2, y + 60, 900, GREEN)
+save(im, '04_home.png')
+
 im = background(MAGENTA)
 y = caption(im, ['PICK YOUR', 'LOOK'], 'Block Meter · Arcade · Neon Vector', AMBER, top=130)
 phone(im, raw(1), int(W * 0.30), y + 90, 560, AMBER, tilt=4)
 phone(im, raw(0), int(W * 0.70), y + 40, 560, CYAN, tilt=-4)
-save(im, '04_looks.png')
+save(im, '05_looks.png')
 
 im = background(GREEN)
 glow_text(im, (W // 2, 260), 'NO ACCOUNT.', font(PIX, 66), GREEN)
@@ -164,7 +170,7 @@ for r, row in enumerate(pattern):
             [x, yy, x + cell, yy + cell], fill=GREEN if on == '1' else (20, 40, 18)
         )
 glow_text(im, (W // 2, 1720), 'PROTEIN GRID', font(PIX, 52), GREEN)
-save(im, '05_private.png')
+save(im, '06_private.png')
 
 # Play feature graphic, 1024x500: name, promise, and the Grid.
 FW, FH = 1024, 500
