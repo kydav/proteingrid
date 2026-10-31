@@ -7,7 +7,8 @@ import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/providers.dart';
-import 'package:proteingrid/features/settings/watch_paywall_sheet.dart';
+import 'package:proteingrid/features/pro/pro_paywall_sheet.dart';
+import 'package:proteingrid/features/settings/presets_editor.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _goalCtrl;
   bool _reminderEnabled = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
+  List<TimeOfDay> _extraReminders = const [];
   bool _notifLoaded = false;
 
   @override
@@ -33,10 +35,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _loadReminderSettings() async {
     final settings = await NotificationsService.getReminderSettings();
+    final extras = await NotificationsService.getExtraReminders();
     if (mounted) {
       setState(() {
         _reminderEnabled = settings.enabled;
         _reminderTime = settings.time;
+        _extraReminders = extras;
         _notifLoaded = true;
       });
     }
@@ -91,6 +95,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         await NotificationsService.scheduleDailyReminder(picked);
       }
     }
+  }
+
+  /// Pro: another reminder through the day.
+  Future<void> _addExtraReminder() async {
+    if (!await requirePro(context, ref, reason: ProReason.reminders)) return;
+    if (!mounted) return;
+    final granted = await NotificationsService.requestPermission();
+    if (!granted && mounted && Platform.isIOS) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enable notifications in Settings to use reminders.'),
+        ),
+      );
+      return;
+    }
+    if (!mounted) return;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 13, minute: 0),
+    );
+    if (picked == null) return;
+    final next = [..._extraReminders, picked];
+    await NotificationsService.setExtraReminders(next);
+    if (mounted) setState(() => _extraReminders = next);
+  }
+
+  Future<void> _removeExtraReminder(int i) async {
+    final next = [..._extraReminders]..removeAt(i);
+    await NotificationsService.setExtraReminders(next);
+    if (mounted) setState(() => _extraReminders = next);
   }
 
   Future<void> _exportCsv() async {
@@ -155,6 +189,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const _ProSection(),
+          const SizedBox(height: 24),
+
           // ── Daily goal ──────────────────────────────────────────────────
           _sectionHeader(context, 'Daily protein goal'),
           Text(
@@ -214,9 +251,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 onTap: _pickReminderTime,
               ),
+            for (var i = 0; i < _extraReminders.length; i++)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.alarm_rounded, color: cs.primary),
+                title: Text('Also at ${_extraReminders[i].format(context)}'),
+                trailing: IconButton(
+                  tooltip: 'Remove',
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () => _removeExtraReminder(i),
+                ),
+              ),
+            if (_extraReminders.length < kMaxExtraReminders)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _addExtraReminder,
+                  icon: const Icon(Icons.add_alarm_rounded),
+                  label: const Text('Add another reminder'),
+                ),
+              ),
             const SizedBox(height: 4),
             Text(
-              'You also receive a notification when you hit your daily goal.',
+              'Reminders skip the rest of a day once you hit your goal. You '
+              'also get a notification when you hit it.',
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -241,7 +299,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               context,
             ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.tune_rounded, color: cs.primary),
+            title: const Text('Edit quick-log buttons'),
+            subtitle: const Text('Your own amounts and names'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () async {
+              if (!await requirePro(context, ref, reason: ProReason.presets)) {
+                return;
+              }
+              if (context.mounted) await showPresetsEditor(context);
+            },
+          ),
+          const SizedBox(height: 8),
           ...['Log 30g', 'Log 40g', 'Log 50g', 'Custom amount'].map(
             (label) => ListTile(
               contentPadding: EdgeInsets.zero,
@@ -258,15 +330,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
-          if (Platform.isIOS) ...[
-            // ── Apple Watch ─────────────────────────────────────────────────
-            _sectionHeader(context, 'Apple Watch'),
-            const _WatchSection(),
-
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-          ],
 
           // ── Data ────────────────────────────────────────────────────────
           _sectionHeader(context, 'Data'),
@@ -307,67 +370,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   );
 }
 
-class _WatchSection extends ConsumerWidget {
-  const _WatchSection();
+/// Pro status, or the way in. Restore lives here too, for a new phone.
+class _ProSection extends ConsumerWidget {
+  const _ProSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final watchAsync = ref.watch(watchUnlockedProvider);
-
-    return watchAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12),
-            Text('Checking Watch status…'),
-          ],
-        ),
+    if (!purchasesAvailable) return const SizedBox.shrink();
+    final pro = ref.watch(isProNowProvider);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.5)),
       ),
-      error: (_, _) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(Icons.watch_off_outlined, color: cs.onSurfaceVariant),
-        title: const Text('Unable to check Watch status'),
-      ),
-      data: (unlocked) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(
-              unlocked ? Icons.watch_rounded : Icons.watch_off_outlined,
-              color: unlocked ? cs.primary : cs.onSurfaceVariant,
-            ),
-            title: Text(unlocked ? 'Watch app enabled' : 'Watch app locked'),
-            subtitle: Text(
-              unlocked
-                  ? 'Open the ProteinGrid app on your Apple Watch to start tracking.'
-                  : 'Watch access is available as a paid add-on.',
-            ),
-            trailing: unlocked
-                ? Icon(Icons.check_circle_rounded, color: cs.primary)
-                : null,
+          Icon(
+            pro ? Icons.verified_rounded : Icons.grid_view_rounded,
+            color: cs.primary,
           ),
-          if (!unlocked) ...[
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: () async {
-                await showWatchPaywallSheet(context);
-                ref.invalidate(watchUnlockedProvider);
-              },
-              icon: const Icon(Icons.watch_rounded, size: 18),
-              label: const Text('Unlock Watch App'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  pro ? 'ProteinGrid Pro' : 'Get ProteinGrid Pro',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  pro
+                      ? 'Thanks for supporting a tiny indie app.'
+                      : 'Your whole year on the Grid, full history, your own '
+                            'buttons, more reminders.',
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
+                ),
+              ],
             ),
-          ],
+          ),
+          if (!pro)
+            FilledButton(
+              onPressed: () => showProPaywall(context),
+              child: const Text('See Pro'),
+            ),
         ],
       ),
     );

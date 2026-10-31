@@ -8,8 +8,13 @@ const _reminderEnabledKey = 'reminder_enabled';
 const _reminderHourKey = 'reminder_hour';
 const _reminderMinuteKey = 'reminder_minute';
 const _goalHitSentTodayKey = 'goal_hit_sent_date';
+const _extraRemindersKey = 'extra_reminders';
 const _reminderId = 1;
 const _goalHitId = 2;
+const _extraReminderIds = [3, 4];
+
+/// Extra reminder times beyond the main one (Pro).
+const kMaxExtraReminders = 2;
 
 class NotificationsService {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -33,18 +38,21 @@ class NotificationsService {
   static Future<bool> requestPermission() async {
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>();
-    final granted = await ios?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        ) ??
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    final granted =
+        await ios?.requestPermissions(alert: true, badge: true, sound: true) ??
         false;
     return granted;
   }
 
-  static Future<void> scheduleDailyReminder(TimeOfDay time) async {
-    await _plugin.cancel(_reminderId);
+  /// Whether today's goal is already hit; reminders skip today if so.
+  static bool _goalHitToday = false;
+
+  /// Schedules one repeating daily reminder at [time], starting today, or
+  /// tomorrow when today's time has passed or the goal is already hit.
+  static Future<void> _schedule(int id, TimeOfDay time) async {
+    await _plugin.cancel(id);
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(
       tz.local,
@@ -54,19 +62,16 @@ class NotificationsService {
       time.hour,
       time.minute,
     );
-    if (scheduled.isBefore(now)) {
+    if (scheduled.isBefore(now) || _goalHitToday) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     await _plugin.zonedSchedule(
-      _reminderId,
+      id,
       "Don't forget your protein 💪",
       "Tap to log what you've had today.",
       scheduled,
       const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder',
-          'Daily reminder',
-        ),
+        android: AndroidNotificationDetails('daily_reminder', 'Daily reminder'),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -74,7 +79,26 @@ class NotificationsService {
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
+  }
 
+  /// Re-plans every reminder for whether today's goal is hit: once it is,
+  /// today's remaining reminders are skipped (they resume tomorrow).
+  static Future<void> refreshForToday({required bool goalHit}) async {
+    if (goalHit == _goalHitToday && _planned) return;
+    _goalHitToday = goalHit;
+    _planned = true;
+    final main = await getReminderSettings();
+    if (main.enabled) await _schedule(_reminderId, main.time);
+    final extras = await getExtraReminders();
+    for (var i = 0; i < extras.length && i < _extraReminderIds.length; i++) {
+      await _schedule(_extraReminderIds[i], extras[i]);
+    }
+  }
+
+  static bool _planned = false;
+
+  static Future<void> scheduleDailyReminder(TimeOfDay time) async {
+    await _schedule(_reminderId, time);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_reminderEnabledKey, true);
     await prefs.setInt(_reminderHourKey, time.hour);
@@ -85,6 +109,31 @@ class NotificationsService {
     await _plugin.cancel(_reminderId);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_reminderEnabledKey, false);
+  }
+
+  /// The extra reminder times (Pro), in order.
+  static Future<List<TimeOfDay>> getExtraReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    return [
+      for (final s in prefs.getStringList(_extraRemindersKey) ?? const [])
+        if (s.split(':') case [final h, final m])
+          TimeOfDay(hour: int.parse(h), minute: int.parse(m)),
+    ];
+  }
+
+  /// Replaces the extra reminders with [times] (at most [kMaxExtraReminders]).
+  static Future<void> setExtraReminders(List<TimeOfDay> times) async {
+    final kept = times.take(kMaxExtraReminders).toList();
+    for (final id in _extraReminderIds) {
+      await _plugin.cancel(id);
+    }
+    for (var i = 0; i < kept.length; i++) {
+      await _schedule(_extraReminderIds[i], kept[i]);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_extraRemindersKey, [
+      for (final t in kept) '${t.hour}:${t.minute}',
+    ]);
   }
 
   static Future<({bool enabled, TimeOfDay time})> getReminderSettings() async {

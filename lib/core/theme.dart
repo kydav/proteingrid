@@ -12,9 +12,13 @@ const kArcadeSurfaceHigh = Color(0xFF14142A);
 
 /// Neon glow BoxShadow for any color.
 List<BoxShadow> neonGlow(Color color, {double intensity = 0.7}) => [
-      BoxShadow(color: color.withValues(alpha: intensity), blurRadius: 14, spreadRadius: 1),
-      BoxShadow(color: color.withValues(alpha: intensity * 0.4), blurRadius: 28),
-    ];
+  BoxShadow(
+    color: color.withValues(alpha: intensity),
+    blurRadius: 14,
+    spreadRadius: 1,
+  ),
+  BoxShadow(color: color.withValues(alpha: intensity * 0.4), blurRadius: 28),
+];
 
 ThemeData arcadeTheme() {
   const cs = ColorScheme(
@@ -55,52 +59,52 @@ ThemeData arcadeTheme() {
   // Press Start 2P for display/headline; body stays readable
   final textTheme = GoogleFonts.pressStart2pTextTheme().copyWith(
     // Only use pixel font for large display text
-    displayLarge: GoogleFonts.pressStart2p(
-      fontSize: 28, color: kNeonGreen,
-    ),
-    displayMedium: GoogleFonts.pressStart2p(
-      fontSize: 22, color: kNeonGreen,
-    ),
-    headlineLarge: GoogleFonts.pressStart2p(
-      fontSize: 18, color: kNeonGreen,
-    ),
-    headlineMedium: GoogleFonts.pressStart2p(
-      fontSize: 14, color: kNeonGreen,
-    ),
+    displayLarge: GoogleFonts.pressStart2p(fontSize: 28, color: kNeonGreen),
+    displayMedium: GoogleFonts.pressStart2p(fontSize: 22, color: kNeonGreen),
+    headlineLarge: GoogleFonts.pressStart2p(fontSize: 18, color: kNeonGreen),
+    headlineMedium: GoogleFonts.pressStart2p(fontSize: 14, color: kNeonGreen),
     headlineSmall: GoogleFonts.pressStart2p(
-      fontSize: 12, color: kNeonGreen,
+      fontSize: 12,
+      color: kNeonGreen,
       height: 1.6,
     ),
     titleLarge: GoogleFonts.pressStart2p(
-      fontSize: 11, color: kNeonGreen,
+      fontSize: 11,
+      color: kNeonGreen,
       height: 1.6,
     ),
     titleMedium: GoogleFonts.orbitron(
-      fontSize: 13, fontWeight: FontWeight.w700, color: kNeonGreen,
+      fontSize: 13,
+      fontWeight: FontWeight.w700,
+      color: kNeonGreen,
       letterSpacing: 1,
     ),
     titleSmall: GoogleFonts.orbitron(
-      fontSize: 11, fontWeight: FontWeight.w600, color: kNeonGreen,
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      color: kNeonGreen,
     ),
     // Body stays with Orbitron for readability but keeps the retro feel
-    bodyLarge: GoogleFonts.orbitron(
-      fontSize: 13, color: kNeonGreen,
-    ),
-    bodyMedium: GoogleFonts.orbitron(
-      fontSize: 11, color: kNeonGreen,
-    ),
+    bodyLarge: GoogleFonts.orbitron(fontSize: 13, color: kNeonGreen),
+    bodyMedium: GoogleFonts.orbitron(fontSize: 11, color: kNeonGreen),
     bodySmall: GoogleFonts.orbitron(
-      fontSize: 10, color: const Color(0xFF00CC10),
+      fontSize: 10,
+      color: const Color(0xFF00CC10),
     ),
     labelLarge: GoogleFonts.orbitron(
-      fontSize: 11, fontWeight: FontWeight.w700,
-      color: kNeonGreen, letterSpacing: 1,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: kNeonGreen,
+      letterSpacing: 1,
     ),
     labelMedium: GoogleFonts.orbitron(
-      fontSize: 10, color: const Color(0xFF00CC10), letterSpacing: 0.5,
+      fontSize: 10,
+      color: const Color(0xFF00CC10),
+      letterSpacing: 0.5,
     ),
     labelSmall: GoogleFonts.orbitron(
-      fontSize: 9, color: const Color(0xFF00CC10),
+      fontSize: 9,
+      color: const Color(0xFF00CC10),
     ),
   );
 
@@ -114,9 +118,7 @@ ThemeData arcadeTheme() {
       foregroundColor: kNeonGreen,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: GoogleFonts.pressStart2p(
-        fontSize: 13, color: kNeonGreen,
-      ),
+      titleTextStyle: GoogleFonts.pressStart2p(fontSize: 13, color: kNeonGreen),
       iconTheme: const IconThemeData(color: kNeonGreen),
     ),
     navigationBarTheme: NavigationBarThemeData(
@@ -140,21 +142,22 @@ ThemeData arcadeTheme() {
       }),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        backgroundColor: kNeonGreen,
-        foregroundColor: kArcadeBg,
-        minimumSize: const Size(64, 48),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-        ),
-        textStyle: GoogleFonts.pressStart2p(fontSize: 10),
-        elevation: 0,
-      ).copyWith(
-        // Glow effect on press
-        overlayColor: WidgetStateProperty.all(
-          kNeonGreen.withValues(alpha: 0.2),
-        ),
-      ),
+      style:
+          FilledButton.styleFrom(
+            backgroundColor: kNeonGreen,
+            foregroundColor: kArcadeBg,
+            minimumSize: const Size(64, 48),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(4)),
+            ),
+            textStyle: GoogleFonts.pressStart2p(fontSize: 10),
+            elevation: 0,
+          ).copyWith(
+            // Glow effect on press
+            overlayColor: WidgetStateProperty.all(
+              kNeonGreen.withValues(alpha: 0.2),
+            ),
+          ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
@@ -164,7 +167,8 @@ ThemeData arcadeTheme() {
           borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
         textStyle: GoogleFonts.orbitron(
-          fontSize: 10, fontWeight: FontWeight.w700,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
         ),
       ),
     ),
@@ -172,7 +176,8 @@ ThemeData arcadeTheme() {
       style: TextButton.styleFrom(
         foregroundColor: kNeonGreen,
         textStyle: GoogleFonts.orbitron(
-          fontSize: 10, fontWeight: FontWeight.w700,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
         ),
       ),
     ),
@@ -192,20 +197,22 @@ ThemeData arcadeTheme() {
         borderSide: const BorderSide(color: kNeonGreen, width: 2),
       ),
       labelStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: const Color(0xFF00CC10),
+        fontSize: 10,
+        color: const Color(0xFF00CC10),
       ),
       hintStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: const Color(0xFF1A5C12),
+        fontSize: 10,
+        color: const Color(0xFF1A5C12),
       ),
-      suffixStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: kNeonGreen,
-      ),
+      suffixStyle: GoogleFonts.orbitron(fontSize: 10, color: kNeonGreen),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: kArcadeSurface,
       selectedColor: kNeonGreen.withValues(alpha: 0.15),
       labelStyle: GoogleFonts.orbitron(
-        fontSize: 10, fontWeight: FontWeight.w700, color: kNeonGreen,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: kNeonGreen,
       ),
       side: const BorderSide(color: Color(0xFF1A5C12)),
       shape: const RoundedRectangleBorder(
@@ -223,9 +230,7 @@ ThemeData arcadeTheme() {
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: kArcadeSurface,
-      contentTextStyle: GoogleFonts.orbitron(
-        fontSize: 10, color: kNeonGreen,
-      ),
+      contentTextStyle: GoogleFonts.orbitron(fontSize: 10, color: kNeonGreen),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(4)),
         side: BorderSide(color: kNeonGreen),
@@ -239,15 +244,20 @@ ThemeData arcadeTheme() {
         side: BorderSide(color: kNeonGreen, width: 1.5),
       ),
       titleTextStyle: GoogleFonts.pressStart2p(
-        fontSize: 12, color: kNeonGreen, height: 1.6,
+        fontSize: 12,
+        color: kNeonGreen,
+        height: 1.6,
       ),
       contentTextStyle: GoogleFonts.orbitron(
-        fontSize: 11, color: const Color(0xFF00CC10),
+        fontSize: 11,
+        color: const Color(0xFF00CC10),
       ),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? kArcadeBg : const Color(0xFF1A5C12),
+        (s) => s.contains(WidgetState.selected)
+            ? kArcadeBg
+            : const Color(0xFF1A5C12),
       ),
       trackColor: WidgetStateProperty.resolveWith(
         (s) => s.contains(WidgetState.selected)

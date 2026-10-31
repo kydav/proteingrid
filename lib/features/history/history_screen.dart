@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:proteingrid/data/stats_providers.dart';
+import 'package:proteingrid/features/history/year_grid.dart';
+import 'package:proteingrid/features/pro/pro_paywall_sheet.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -24,7 +26,10 @@ class HistoryScreen extends ConsumerWidget {
       backgroundColor: cs.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('History', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'History',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -74,6 +79,14 @@ class HistoryScreen extends ConsumerWidget {
             ),
           ),
 
+          // ── The Grid: the year at a glance (Pro beyond the last weeks) ──
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: YearGrid(),
+            ),
+          ),
+
           // ── 7-day bar chart ───────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -83,9 +96,8 @@ class HistoryScreen extends ConsumerWidget {
                 goal: goal.toDouble(),
                 selectedDay: selectedDay,
                 cs: cs,
-                onDayTap: (day) => ref
-                    .read(selectedHistoryDayProvider.notifier)
-                    .state = day,
+                onDayTap: (day) =>
+                    ref.read(selectedHistoryDayProvider.notifier).state = day,
               ),
             ),
           ),
@@ -96,14 +108,35 @@ class HistoryScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
               child: _DaySelector(
                 selectedDay: selectedDay,
-                onPrev: () {
-                  ref.read(selectedHistoryDayProvider.notifier).state =
-                      selectedDay.subtract(const Duration(days: 1));
+                onPrev: () async {
+                  final prev = DateTime(
+                    selectedDay.year,
+                    selectedDay.month,
+                    selectedDay.day - 1,
+                  );
+                  // Free history covers the weeks the Grid shows.
+                  final now = DateTime.now();
+                  final oldestFree = DateTime(
+                    now.year,
+                    now.month,
+                    now.day - 7 * kFreeGridWeeks,
+                  );
+                  if (prev.isBefore(oldestFree) &&
+                      !await requirePro(
+                        context,
+                        ref,
+                        reason: ProReason.history,
+                      )) {
+                    return;
+                  }
+                  ref.read(selectedHistoryDayProvider.notifier).state = prev;
                 },
                 onNext: () {
                   final next = selectedDay.add(const Duration(days: 1));
                   final today = DateTime.now();
-                  if (next.isBefore(DateTime(today.year, today.month, today.day + 1))) {
+                  if (next.isBefore(
+                    DateTime(today.year, today.month, today.day + 1),
+                  )) {
                     ref.read(selectedHistoryDayProvider.notifier).state = next;
                   }
                 },
@@ -154,9 +187,9 @@ class _WeekChart extends StatelessWidget {
         children: [
           Text(
             'Last 7 days',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -166,7 +199,9 @@ class _WeekChart extends StatelessWidget {
               children: weeklyTotals.map((d) {
                 final isSelected = _sameDay(d.day, selectedDay);
                 final isToday = _sameDay(d.day, DateTime.now());
-                final frac = maxVal > 0 ? (d.total / maxVal).clamp(0.0, 1.0) : 0.0;
+                final frac = maxVal > 0
+                    ? (d.total / maxVal).clamp(0.0, 1.0)
+                    : 0.0;
                 final hitGoal = d.total >= goal && d.total > 0;
 
                 return Expanded(
@@ -194,10 +229,10 @@ class _WeekChart extends StatelessWidget {
                               color: isSelected
                                   ? cs.primary
                                   : hitGoal
-                                      ? cs.tertiary.withValues(alpha: 0.7)
-                                      : d.total > 0
-                                          ? cs.primary.withValues(alpha: 0.4)
-                                          : cs.surfaceContainerHighest,
+                                  ? cs.tertiary.withValues(alpha: 0.7)
+                                  : d.total > 0
+                                  ? cs.primary.withValues(alpha: 0.4)
+                                  : cs.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -261,7 +296,8 @@ class _DaySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
-    final isToday = selectedDay.year == today.year &&
+    final isToday =
+        selectedDay.year == today.year &&
         selectedDay.month == today.month &&
         selectedDay.day == today.day;
 
@@ -273,9 +309,9 @@ class _DaySelector extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const Spacer(),
         IconButton(
@@ -338,16 +374,17 @@ class _DayLogList extends ConsumerWidget {
               ),
               if (total >= goal) ...[
                 const SizedBox(width: 6),
-                Icon(Icons.check_circle_rounded,
-                    color: cs.tertiary, size: 16),
+                Icon(Icons.check_circle_rounded, color: cs.tertiary, size: 16),
               ],
             ],
           ),
         ),
         ...logs.map(
           (log) => ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 2,
+            ),
             leading: Container(
               width: 44,
               height: 44,

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:proteingrid/core/purchases_service.dart';
+import 'package:proteingrid/data/presets.dart';
 import 'package:proteingrid/data/providers.dart';
-import 'package:proteingrid/data/stats_providers.dart';
+import 'package:proteingrid/features/pro/pro_paywall_sheet.dart';
+import 'package:proteingrid/features/settings/presets_editor.dart';
 
 /// Shows the quick-log bottom sheet. Returns true if a log was saved.
 Future<bool> showQuickLogSheet(
@@ -37,8 +38,6 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
   bool _showCustom = false;
   bool _saving = false;
 
-  static const _presets = [20.0, 25.0, 30.0, 40.0, 50.0];
-
   @override
   void initState() {
     super.initState();
@@ -58,23 +57,20 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
     super.dispose();
   }
 
-  Future<void> _log(double grams) async {
+  Future<void> _log(double grams, {String? presetLabel}) async {
     if (_saving) return;
     setState(() => _saving = true);
     try {
-      final label = _labelCtrl.text.trim().isNotEmpty
-          ? _labelCtrl.text.trim()
+      final typed = _labelCtrl.text.trim();
+      final label = typed.isNotEmpty
+          ? typed
+          : (presetLabel?.isNotEmpty ?? false)
+          ? presetLabel
           : null;
       final goal = ref.read(dailyGoalProvider);
-      final streak = ref.read(streakProvider);
-      final unlocked = ref.read(watchUnlockedProvider).valueOrNull ?? false;
-      await ref.read(todayLogsProvider.notifier).add(
-            grams: grams,
-            label: label,
-            goal: goal,
-            streak: streak,
-            watchUnlocked: unlocked,
-          );
+      await ref
+          .read(todayLogsProvider.notifier)
+          .add(grams: grams, label: label, goal: goal);
       await HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(true);
     } finally {
@@ -92,6 +88,7 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final recentLabels = ref.watch(recentLabelsProvider);
+    final presets = ref.watch(presetsProvider);
     final kb = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
@@ -132,10 +129,12 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
             spacing: 10,
             runSpacing: 10,
             children: [
-              ..._presets.map(
-                (g) => _PresetChip(
-                  grams: g,
-                  onTap: _saving ? null : () => _log(g),
+              ...presets.map(
+                (p) => _PresetChip(
+                  preset: p,
+                  onTap: _saving
+                      ? null
+                      : () => _log(p.grams, presetLabel: p.label),
                   cs: cs,
                 ),
               ),
@@ -143,6 +142,21 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
                 label: const Text('Custom'),
                 avatar: const Icon(Icons.edit_outlined, size: 16),
                 onPressed: () => setState(() => _showCustom = !_showCustom),
+              ),
+              // Pro: make these buttons your own.
+              ActionChip(
+                label: const Text('Edit'),
+                avatar: const Icon(Icons.tune_rounded, size: 16),
+                onPressed: () async {
+                  if (!await requirePro(
+                    context,
+                    ref,
+                    reason: ProReason.presets,
+                  )) {
+                    return;
+                  }
+                  if (context.mounted) await showPresetsEditor(context);
+                },
               ),
             ],
           ),
@@ -236,12 +250,12 @@ class _QuickLogSheetState extends ConsumerState<_QuickLogSheet> {
 
 class _PresetChip extends StatelessWidget {
   const _PresetChip({
-    required this.grams,
+    required this.preset,
     required this.onTap,
     required this.cs,
   });
 
-  final double grams;
+  final QuickPreset preset;
   final VoidCallback? onTap;
   final ColorScheme cs;
 
@@ -257,7 +271,9 @@ class _PresetChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(50),
         ),
         child: Text(
-          '${grams.toStringAsFixed(0)}g',
+          preset.label.isEmpty
+              ? '${preset.grams.toStringAsFixed(0)}g'
+              : '${preset.label} · ${preset.grams.toStringAsFixed(0)}g',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 15,

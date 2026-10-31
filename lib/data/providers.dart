@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:proteingrid/core/notifications_service.dart';
-import 'package:proteingrid/core/watch_service.dart';
 import 'package:proteingrid/data/log_repository.dart';
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,8 +30,6 @@ class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
     required double grams,
     String? label,
     int goal = 150,
-    int streak = 0,
-    bool watchUnlocked = false,
   }) async {
     await _repo.add(grams: grams, label: label);
     _load();
@@ -40,14 +37,11 @@ class TodayLogsNotifier extends StateNotifier<List<ProteinLog>> {
     if (total >= goal) {
       await NotificationsService.maybeShowGoalHit();
     }
-    WatchService.instance.sync(todayTotal: total, dailyGoal: goal, streak: streak, watchUnlocked: watchUnlocked).ignore();
   }
 
-  Future<void> remove(String id, {int goal = 150, int streak = 0, bool watchUnlocked = false}) async {
+  Future<void> remove(String id) async {
     await _repo.remove(id);
     _load();
-    final total = state.fold(0.0, (s, l) => s + l.grams);
-    WatchService.instance.sync(todayTotal: total, dailyGoal: goal, streak: streak, watchUnlocked: watchUnlocked).ignore();
   }
 
   ProteinLog? get lastLog => state.isEmpty ? null : state.first;
@@ -86,3 +80,8 @@ final recentLabelsProvider = Provider<List<String>>((ref) {
 // Used by the quick action handler to pass a pre-filled gram value
 // to the home screen so it can auto-open the log sheet.
 final pendingQuickActionGramsProvider = StateProvider<double?>((ref) => null);
+
+/// Whether today's goal is hit. Reminders skip the rest of a day once it is.
+final goalHitTodayProvider = Provider<bool>(
+  (ref) => ref.watch(todayTotalProvider) >= ref.watch(dailyGoalProvider),
+);

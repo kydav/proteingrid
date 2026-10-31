@@ -9,9 +9,7 @@ class LogRepository {
   Box<ProteinLog> get _box => Hive.box<ProteinLog>(_boxName);
 
   List<ProteinLog> logsForDay(DateTime day) {
-    return _box.values
-        .where((l) => _sameDay(l.timestamp, day))
-        .toList()
+    return _box.values.where((l) => _sameDay(l.timestamp, day)).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
