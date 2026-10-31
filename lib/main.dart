@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:proteingrid/core/home_style.dart';
 import 'package:proteingrid/core/notifications_service.dart';
 import 'package:proteingrid/core/purchases_service.dart';
 import 'package:proteingrid/core/router.dart';
@@ -101,12 +102,14 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
 
   @override
   Widget build(BuildContext context) {
+    // Every screen follows the Today style picked in Settings.
+    final theme = arcadeTheme(ref.watch(homeStyleProvider).palette);
     return MaterialApp(
       title: 'ProteinGrid',
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      theme: arcadeTheme(),
-      darkTheme: arcadeTheme(),
+      theme: theme,
+      darkTheme: theme,
       themeMode: ThemeMode.dark,
       onGenerateRoute: ProteinGridRouter.onGenerateRoute,
       initialRoute: '/',

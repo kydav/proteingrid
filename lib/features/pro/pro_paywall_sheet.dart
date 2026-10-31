@@ -72,7 +72,7 @@ class _ProPaywallSheet extends ConsumerStatefulWidget {
 }
 
 class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
-  List<Package> _packages = const [];
+  List<Package> _packages = [];
   Package? _selected;
   bool _loading = true;
   bool _purchasing = false;
@@ -171,21 +171,24 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final glow = neonGlow(
-      kNeonGreen,
+      _accent(context),
       intensity: 0.9,
     ).map((s) => Shadow(color: s.color, blurRadius: s.blurRadius)).toList();
     final selected = _selected;
     return Container(
       decoration: BoxDecoration(
-        color: kArcadeSurface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         border: Border(
-          top: BorderSide(color: kNeonGreen.withValues(alpha: 0.5), width: 1.5),
-          left: BorderSide(color: kNeonGreen.withValues(alpha: 0.2)),
-          right: BorderSide(color: kNeonGreen.withValues(alpha: 0.2)),
+          top: BorderSide(
+            color: _accent(context).withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+          left: BorderSide(color: _accent(context).withValues(alpha: 0.2)),
+          right: BorderSide(color: _accent(context).withValues(alpha: 0.2)),
         ),
         boxShadow: [
           BoxShadow(
-            color: kNeonGreen.withValues(alpha: 0.15),
+            color: _accent(context).withValues(alpha: 0.15),
             blurRadius: 24,
             spreadRadius: 2,
             offset: const Offset(0, -4),
@@ -203,7 +206,7 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: kNeonGreen.withValues(alpha: 0.4),
+                  color: _accent(context).withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -216,7 +219,7 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
                 style: GoogleFonts.pressStart2p(
                   fontSize: 13,
                   height: 1.5,
-                  color: kNeonGreen,
+                  color: _accent(context),
                   shadows: glow,
                 ),
               ),
@@ -234,9 +237,9 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
               ..._features.map((f) => _FeatureRow(text: f)),
               const SizedBox(height: 20),
               if (_loading)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: kNeonGreen),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: CircularProgressIndicator(color: _accent(context)),
                 )
               else
                 for (final p in _packages)
@@ -260,27 +263,29 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
                 child: FilledButton(
                   onPressed: _purchasing || selected == null ? null : _purchase,
                   style: FilledButton.styleFrom(
-                    backgroundColor: kNeonGreen,
-                    foregroundColor: kArcadeBg,
-                    disabledBackgroundColor: kNeonGreen.withValues(alpha: 0.3),
+                    backgroundColor: _accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.surface,
+                    disabledBackgroundColor: _accent(
+                      context,
+                    ).withValues(alpha: 0.3),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                     ),
                   ),
                   child: _purchasing
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: kArcadeBg,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         )
                       : Text(
                           selected == null ? 'UNAVAILABLE' : _cta(selected),
                           style: GoogleFonts.pressStart2p(
                             fontSize: 10,
-                            color: kArcadeBg,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                 ),
@@ -369,7 +374,9 @@ class _PackageTile extends StatelessWidget {
       PackageType.monthly => ('Monthly', ''),
       _ => (p.title, ''),
     };
-    final color = selected ? kNeonGreen : kNeonGreen.withValues(alpha: 0.35);
+    final color = selected
+        ? _accent(context)
+        : _accent(context).withValues(alpha: 0.35);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
@@ -378,10 +385,12 @@ class _PackageTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: kNeonGreen.withValues(alpha: selected ? 0.1 : 0.03),
+            color: _accent(context).withValues(alpha: selected ? 0.1 : 0.03),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: color, width: selected ? 1.5 : 1),
-            boxShadow: selected ? neonGlow(kNeonGreen, intensity: 0.15) : null,
+            boxShadow: selected
+                ? neonGlow(_accent(context), intensity: 0.15)
+                : null,
           ),
           child: Row(
             children: [
@@ -402,7 +411,7 @@ class _PackageTile extends StatelessWidget {
                       style: GoogleFonts.orbitron(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: kNeonGreen,
+                        color: _accent(context),
                       ),
                     ),
                     if (note.isNotEmpty)
@@ -410,7 +419,7 @@ class _PackageTile extends StatelessWidget {
                         note,
                         style: GoogleFonts.orbitron(
                           fontSize: 9,
-                          color: const Color(0xFF00CC10),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                   ],
@@ -420,7 +429,7 @@ class _PackageTile extends StatelessWidget {
                 p.priceString,
                 style: GoogleFonts.pressStart2p(
                   fontSize: 10,
-                  color: kNeonGreen,
+                  color: _accent(context),
                 ),
               ),
             ],
@@ -442,14 +451,14 @@ class _FeatureRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_rounded, color: kNeonGreen, size: 16),
+          Icon(Icons.check_circle_rounded, color: _accent(context), size: 16),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
               style: GoogleFonts.orbitron(
                 fontSize: 10,
-                color: const Color(0xFF00CC10),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -464,7 +473,7 @@ class _FeatureRow extends StatelessWidget {
 class _MiniGrid extends StatelessWidget {
   const _MiniGrid();
 
-  static const _pattern = [
+  static final _pattern = [
     [1, 1, 0, 1, 1, 1, 1],
     [0, 1, 1, 1, 0, 1, 1],
     [1, 1, 1, 1, 1, 0, 1],
@@ -486,11 +495,11 @@ class _MiniGrid extends StatelessWidget {
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: on == 1
-                        ? kNeonGreen
-                        : kNeonGreen.withValues(alpha: 0.12),
+                        ? _accent(context)
+                        : _accent(context).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(2),
                     boxShadow: on == 1
-                        ? neonGlow(kNeonGreen, intensity: 0.3)
+                        ? neonGlow(_accent(context), intensity: 0.3)
                         : null,
                   ),
                 ),
@@ -500,3 +509,5 @@ class _MiniGrid extends StatelessWidget {
     );
   }
 }
+
+Color _accent(BuildContext context) => Theme.of(context).colorScheme.primary;

@@ -48,6 +48,7 @@ enum HomeStyle {
       line: Color(0xFF1E2747),
       button: Color(0xFFFF3BD5),
       onButton: Color(0xFF050816),
+      text: Color(0xFFDCE3FF),
     ),
     ('TODAY', 'HISTORY'),
   );
@@ -72,6 +73,7 @@ class HomePalette {
     required this.line,
     required this.button,
     required this.onButton,
+    this.text,
   });
 
   final Color bg;
@@ -87,6 +89,9 @@ class HomePalette {
   final Color line;
   final Color button;
   final Color onButton;
+
+  /// Body text, when it shouldn't just be [accent] (Neon Vector's is pale).
+  final Color? text;
 }
 
 const _key = 'home_style';

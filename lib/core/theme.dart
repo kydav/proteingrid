@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proteingrid/core/home_style.dart';
 
 // Neon palette
 const kNeonGreen = Color(0xFF39FF14);
@@ -20,132 +21,144 @@ List<BoxShadow> neonGlow(Color color, {double intensity = 0.7}) => [
   BoxShadow(color: color.withValues(alpha: intensity * 0.4), blurRadius: 28),
 ];
 
-ThemeData arcadeTheme() {
-  const cs = ColorScheme(
+const _defaultPalette = HomePalette(
+  bg: kArcadeBg,
+  accent: kNeonGreen,
+  accent2: kNeonPink,
+  muted: Color(0xFF00CC10),
+  line: Color(0xFF0D3009),
+  button: kNeonGreen,
+  onButton: kArcadeBg,
+);
+
+/// The app theme, coloured by the Today style's palette (Block Meter green
+/// by default), so every screen matches the chosen look.
+ThemeData arcadeTheme([HomePalette palette = _defaultPalette]) {
+  final accent = palette.accent;
+  final accent2 = palette.accent2;
+  final bg = palette.bg;
+  final text = palette.text ?? palette.accent;
+  final muted = palette.muted;
+  final line = palette.line;
+  final outline = Color.lerp(palette.line, palette.accent, 0.25)!;
+  final surface = Color.lerp(bg, accent, 0.04)!;
+  final surfaceHigh = Color.lerp(bg, accent, 0.09)!;
+
+  final cs = ColorScheme(
     brightness: Brightness.dark,
-    primary: kNeonGreen,
-    onPrimary: kArcadeBg,
-    primaryContainer: Color(0xFF0A2A08),
-    onPrimaryContainer: kNeonGreen,
-    secondary: kNeonPink,
-    onSecondary: kArcadeBg,
-    secondaryContainer: Color(0xFF2A002A),
-    onSecondaryContainer: kNeonPink,
-    tertiary: kNeonCyan,
-    onTertiary: kArcadeBg,
-    tertiaryContainer: Color(0xFF002A2A),
-    onTertiaryContainer: kNeonCyan,
-    error: Color(0xFFFF4444),
-    onError: kArcadeBg,
-    errorContainer: Color(0xFF2A0808),
-    onErrorContainer: Color(0xFFFF4444),
-    surface: kArcadeBg,
-    onSurface: kNeonGreen,
-    surfaceContainerLowest: kArcadeBg,
-    surfaceContainerLow: kArcadeSurface,
-    surfaceContainer: kArcadeSurface,
-    surfaceContainerHigh: kArcadeSurfaceHigh,
-    surfaceContainerHighest: kArcadeSurfaceHigh,
-    onSurfaceVariant: Color(0xFF00CC10),
-    outline: Color(0xFF1A5C12),
-    outlineVariant: Color(0xFF0D3009),
+    primary: accent,
+    onPrimary: bg,
+    primaryContainer: Color.lerp(bg, accent, 0.12)!,
+    onPrimaryContainer: accent,
+    secondary: accent2,
+    onSecondary: bg,
+    secondaryContainer: Color.lerp(bg, accent2, 0.15)!,
+    onSecondaryContainer: accent2,
+    tertiary: accent,
+    onTertiary: bg,
+    tertiaryContainer: Color.lerp(bg, accent, 0.15)!,
+    onTertiaryContainer: accent,
+    error: const Color(0xFFFF4444),
+    onError: bg,
+    errorContainer: const Color(0xFF2A0808),
+    onErrorContainer: const Color(0xFFFF4444),
+    surface: bg,
+    onSurface: text,
+    surfaceContainerLowest: bg,
+    surfaceContainerLow: surface,
+    surfaceContainer: surface,
+    surfaceContainerHigh: surfaceHigh,
+    surfaceContainerHighest: surfaceHigh,
+    onSurfaceVariant: muted,
+    outline: outline,
+    outlineVariant: line,
     shadow: Colors.black,
     scrim: Colors.black,
-    inverseSurface: kNeonGreen,
-    onInverseSurface: kArcadeBg,
-    inversePrimary: kArcadeBg,
+    inverseSurface: accent,
+    onInverseSurface: bg,
+    inversePrimary: bg,
   );
 
   // Press Start 2P for display/headline; body stays readable
   final textTheme = GoogleFonts.pressStart2pTextTheme().copyWith(
     // Only use pixel font for large display text
-    displayLarge: GoogleFonts.pressStart2p(fontSize: 28, color: kNeonGreen),
-    displayMedium: GoogleFonts.pressStart2p(fontSize: 22, color: kNeonGreen),
-    headlineLarge: GoogleFonts.pressStart2p(fontSize: 18, color: kNeonGreen),
-    headlineMedium: GoogleFonts.pressStart2p(fontSize: 14, color: kNeonGreen),
+    displayLarge: GoogleFonts.pressStart2p(fontSize: 28, color: text),
+    displayMedium: GoogleFonts.pressStart2p(fontSize: 22, color: text),
+    headlineLarge: GoogleFonts.pressStart2p(fontSize: 18, color: text),
+    headlineMedium: GoogleFonts.pressStart2p(fontSize: 14, color: text),
     headlineSmall: GoogleFonts.pressStart2p(
       fontSize: 12,
-      color: kNeonGreen,
+      color: text,
       height: 1.6,
     ),
     titleLarge: GoogleFonts.pressStart2p(
       fontSize: 11,
-      color: kNeonGreen,
+      color: text,
       height: 1.6,
     ),
     titleMedium: GoogleFonts.orbitron(
       fontSize: 13,
       fontWeight: FontWeight.w700,
-      color: kNeonGreen,
+      color: text,
       letterSpacing: 1,
     ),
     titleSmall: GoogleFonts.orbitron(
       fontSize: 11,
       fontWeight: FontWeight.w600,
-      color: kNeonGreen,
+      color: text,
     ),
     // Body stays with Orbitron for readability but keeps the retro feel
-    bodyLarge: GoogleFonts.orbitron(fontSize: 13, color: kNeonGreen),
-    bodyMedium: GoogleFonts.orbitron(fontSize: 11, color: kNeonGreen),
-    bodySmall: GoogleFonts.orbitron(
-      fontSize: 10,
-      color: const Color(0xFF00CC10),
-    ),
+    bodyLarge: GoogleFonts.orbitron(fontSize: 13, color: text),
+    bodyMedium: GoogleFonts.orbitron(fontSize: 11, color: text),
+    bodySmall: GoogleFonts.orbitron(fontSize: 10, color: muted),
     labelLarge: GoogleFonts.orbitron(
       fontSize: 11,
       fontWeight: FontWeight.w700,
-      color: kNeonGreen,
+      color: text,
       letterSpacing: 1,
     ),
     labelMedium: GoogleFonts.orbitron(
       fontSize: 10,
-      color: const Color(0xFF00CC10),
+      color: muted,
       letterSpacing: 0.5,
     ),
-    labelSmall: GoogleFonts.orbitron(
-      fontSize: 9,
-      color: const Color(0xFF00CC10),
-    ),
+    labelSmall: GoogleFonts.orbitron(fontSize: 9, color: muted),
   );
 
   return ThemeData(
     useMaterial3: true,
     colorScheme: cs,
     textTheme: textTheme,
-    scaffoldBackgroundColor: kArcadeBg,
+    scaffoldBackgroundColor: bg,
     appBarTheme: AppBarTheme(
-      backgroundColor: kArcadeBg,
-      foregroundColor: kNeonGreen,
+      backgroundColor: bg,
+      foregroundColor: accent,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: GoogleFonts.pressStart2p(fontSize: 13, color: kNeonGreen),
-      iconTheme: const IconThemeData(color: kNeonGreen),
+      titleTextStyle: GoogleFonts.pressStart2p(fontSize: 13, color: accent),
+      iconTheme: IconThemeData(color: accent),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: kArcadeSurface,
-      indicatorColor: kNeonGreen.withValues(alpha: 0.15),
+      backgroundColor: surface,
+      indicatorColor: accent.withValues(alpha: 0.15),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         return IconThemeData(
-          color: states.contains(WidgetState.selected)
-              ? kNeonGreen
-              : const Color(0xFF1A5C12),
+          color: states.contains(WidgetState.selected) ? accent : outline,
         );
       }),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         return GoogleFonts.orbitron(
           fontSize: 9,
           fontWeight: FontWeight.w700,
-          color: states.contains(WidgetState.selected)
-              ? kNeonGreen
-              : const Color(0xFF1A5C12),
+          color: states.contains(WidgetState.selected) ? accent : outline,
         );
       }),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style:
           FilledButton.styleFrom(
-            backgroundColor: kNeonGreen,
-            foregroundColor: kArcadeBg,
+            backgroundColor: accent,
+            foregroundColor: bg,
             minimumSize: const Size(64, 48),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -155,14 +168,14 @@ ThemeData arcadeTheme() {
           ).copyWith(
             // Glow effect on press
             overlayColor: WidgetStateProperty.all(
-              kNeonGreen.withValues(alpha: 0.2),
+              accent.withValues(alpha: 0.2),
             ),
           ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: kNeonGreen,
-        side: const BorderSide(color: kNeonGreen, width: 1.5),
+        foregroundColor: accent,
+        side: BorderSide(color: accent, width: 1.5),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
@@ -174,7 +187,7 @@ ThemeData arcadeTheme() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: kNeonGreen,
+        foregroundColor: accent,
         textStyle: GoogleFonts.orbitron(
           fontSize: 10,
           fontWeight: FontWeight.w700,
@@ -183,93 +196,79 @@ ThemeData arcadeTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: kArcadeSurface,
+      fillColor: surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(4),
-        borderSide: const BorderSide(color: Color(0xFF1A5C12)),
+        borderSide: BorderSide(color: outline),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(4),
-        borderSide: const BorderSide(color: Color(0xFF1A5C12)),
+        borderSide: BorderSide(color: outline),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(4),
-        borderSide: const BorderSide(color: kNeonGreen, width: 2),
+        borderSide: BorderSide(color: accent, width: 2),
       ),
-      labelStyle: GoogleFonts.orbitron(
-        fontSize: 10,
-        color: const Color(0xFF00CC10),
-      ),
-      hintStyle: GoogleFonts.orbitron(
-        fontSize: 10,
-        color: const Color(0xFF1A5C12),
-      ),
-      suffixStyle: GoogleFonts.orbitron(fontSize: 10, color: kNeonGreen),
+      labelStyle: GoogleFonts.orbitron(fontSize: 10, color: muted),
+      hintStyle: GoogleFonts.orbitron(fontSize: 10, color: outline),
+      suffixStyle: GoogleFonts.orbitron(fontSize: 10, color: accent),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: kArcadeSurface,
-      selectedColor: kNeonGreen.withValues(alpha: 0.15),
+      backgroundColor: surface,
+      selectedColor: accent.withValues(alpha: 0.15),
       labelStyle: GoogleFonts.orbitron(
         fontSize: 10,
         fontWeight: FontWeight.w700,
-        color: kNeonGreen,
+        color: accent,
       ),
-      side: const BorderSide(color: Color(0xFF1A5C12)),
+      side: BorderSide(color: outline),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
     ),
-    listTileTheme: const ListTileThemeData(
-      iconColor: kNeonGreen,
-      textColor: kNeonGreen,
+    listTileTheme: ListTileThemeData(
+      iconColor: accent,
+      textColor: accent,
       tileColor: Colors.transparent,
     ),
-    dividerTheme: const DividerThemeData(
-      color: Color(0xFF0D3009),
-      thickness: 1,
-    ),
+    dividerTheme: DividerThemeData(color: line, thickness: 1),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: kArcadeSurface,
-      contentTextStyle: GoogleFonts.orbitron(fontSize: 10, color: kNeonGreen),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(4)),
-        side: BorderSide(color: kNeonGreen),
+      backgroundColor: surface,
+      contentTextStyle: GoogleFonts.orbitron(fontSize: 10, color: accent),
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(4)),
+        side: BorderSide(color: accent),
       ),
       behavior: SnackBarBehavior.floating,
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: kArcadeSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(4)),
-        side: BorderSide(color: kNeonGreen, width: 1.5),
+      backgroundColor: surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(4)),
+        side: BorderSide(color: accent, width: 1.5),
       ),
       titleTextStyle: GoogleFonts.pressStart2p(
         fontSize: 12,
-        color: kNeonGreen,
+        color: accent,
         height: 1.6,
       ),
-      contentTextStyle: GoogleFonts.orbitron(
-        fontSize: 11,
-        color: const Color(0xFF00CC10),
-      ),
+      contentTextStyle: GoogleFonts.orbitron(fontSize: 11, color: muted),
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected)
-            ? kArcadeBg
-            : const Color(0xFF1A5C12),
+        (s) => s.contains(WidgetState.selected) ? bg : outline,
       ),
       trackColor: WidgetStateProperty.resolveWith(
         (s) => s.contains(WidgetState.selected)
-            ? kNeonGreen.withValues(alpha: 0.8)
-            : kArcadeSurfaceHigh,
+            ? accent.withValues(alpha: 0.8)
+            : surfaceHigh,
       ),
     ),
-    iconTheme: const IconThemeData(color: kNeonGreen),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: kNeonGreen,
-      foregroundColor: kArcadeBg,
-      shape: RoundedRectangleBorder(
+    iconTheme: IconThemeData(color: accent),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: accent,
+      foregroundColor: bg,
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(6)),
       ),
     ),

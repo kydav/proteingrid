@@ -186,7 +186,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('SETTINGS')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -365,13 +365,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  // Pixel headers in the style's accent, like the Today screens.
   Widget _sectionHeader(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
+    padding: const EdgeInsets.only(bottom: 8),
     child: Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      text.toUpperCase(),
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+      ),
     ),
   );
 }
@@ -389,7 +390,7 @@ class _ProSection extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cs.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
+
         border: Border.all(color: cs.primary.withValues(alpha: 0.5)),
       ),
       child: Row(

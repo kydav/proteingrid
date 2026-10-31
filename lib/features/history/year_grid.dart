@@ -78,8 +78,8 @@ class _YearGridState extends ConsumerState<YearGrid> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: kNeonGreen.withValues(alpha: 0.25)),
+
+        border: Border.all(color: _accent(context).withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,8 +90,8 @@ class _YearGridState extends ConsumerState<YearGrid> {
                 'THE GRID',
                 style: GoogleFonts.pressStart2p(
                   fontSize: 10,
-                  color: kNeonGreen,
-                  shadows: neonGlow(kNeonGreen, intensity: 0.8)
+                  color: _accent(context),
+                  shadows: neonGlow(_accent(context), intensity: 0.8)
                       .map(
                         (s) => Shadow(color: s.color, blurRadius: s.blurRadius),
                       )
@@ -104,17 +104,17 @@ class _YearGridState extends ConsumerState<YearGrid> {
                   onTap: _unlock,
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.lock_rounded,
                         size: 12,
-                        color: kNeonGreen,
+                        color: _accent(context),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'YOUR YEAR',
                         style: GoogleFonts.orbitron(
                           fontSize: 9,
-                          color: kNeonGreen,
+                          color: _accent(context),
                           letterSpacing: 1,
                         ),
                       ),
@@ -236,13 +236,16 @@ class _Week extends StatelessWidget {
           height: _cell,
           margin: const EdgeInsets.only(bottom: _gap),
           decoration: BoxDecoration(
-            color: kNeonGreen.withValues(alpha: alpha),
+            color: _accent(context).withValues(alpha: alpha),
             borderRadius: BorderRadius.circular(2),
             border: isSelected
-                ? Border.all(color: kNeonCyan, width: 1.5)
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.secondary,
+                    width: 1.5,
+                  )
                 : null,
             boxShadow: hit && !locked
-                ? neonGlow(kNeonGreen, intensity: 0.2)
+                ? neonGlow(_accent(context), intensity: 0.2)
                 : null,
           ),
         ),
@@ -265,7 +268,10 @@ class _Stat extends StatelessWidget {
         children: [
           Text(
             value,
-            style: GoogleFonts.pressStart2p(fontSize: 11, color: kNeonGreen),
+            style: GoogleFonts.pressStart2p(
+              fontSize: 11,
+              color: _accent(context),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -281,3 +287,5 @@ class _Stat extends StatelessWidget {
     );
   }
 }
+
+Color _accent(BuildContext context) => Theme.of(context).colorScheme.primary;

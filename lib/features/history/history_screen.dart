@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:proteingrid/core/home_style.dart';
+
 import 'package:proteingrid/data/protein_log.dart';
 import 'package:proteingrid/data/providers.dart';
 import 'package:proteingrid/data/stats_providers.dart';
@@ -26,10 +28,8 @@ class HistoryScreen extends ConsumerWidget {
       backgroundColor: cs.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text(
-          'History',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        // "HIGH SCORES" in the Arcade Cabinet style, like its tab.
+        title: Text(ref.watch(homeStyleProvider).navLabels.$2),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -180,7 +180,7 @@ class _WeekChart extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outline, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,7 +390,7 @@ class _DayLogList extends ConsumerWidget {
               height: 44,
               decoration: BoxDecoration(
                 color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: cs.outline, width: 1.5),
               ),
               alignment: Alignment.center,
               child: Text(
@@ -445,7 +445,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outline, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
