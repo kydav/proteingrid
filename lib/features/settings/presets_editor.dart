@@ -19,14 +19,16 @@ Future<void> showPresetsEditor(BuildContext context) {
 class _Row {
   _Row(QuickPreset p)
     : grams = TextEditingController(text: p.grams.toStringAsFixed(0)),
-      label = TextEditingController(text: p.label);
+      label = TextEditingController(text: p.label),
+      icon = p.icon;
 
   final TextEditingController grams;
   final TextEditingController label;
+  String icon;
 
   QuickPreset? get preset {
     final g = double.tryParse(grams.text.trim());
-    return g == null || g <= 0 ? null : QuickPreset(g, label.text.trim());
+    return g == null || g <= 0 ? null : QuickPreset(g, label.text.trim(), icon);
   }
 
   void dispose() {
@@ -55,6 +57,49 @@ class _PresetsEditorState extends ConsumerState<_PresetsEditor> {
     super.dispose();
   }
 
+  Future<void> _pickIcon(int i) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final e in kShortcutIcons.entries)
+                SizedBox(
+                  width: 76,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(ctx, e.key),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        children: [
+                          Icon(
+                            e.value.icon,
+                            size: 30,
+                            color: Theme.of(ctx).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            e.value.name,
+                            style: Theme.of(ctx).textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked != null) setState(() => _rows[i].icon = picked);
+  }
+
   Future<void> _save() async {
     await ref.read(presetsProvider.notifier).save([
       for (final r in _rows) ?r.preset,
@@ -81,7 +126,8 @@ class _PresetsEditorState extends ConsumerState<_PresetsEditor> {
             ),
             const SizedBox(height: 4),
             Text(
-              'One tap logs the amount, with its name as the label.',
+              'One tap logs the amount, with its name as the label. The first '
+              'three are also your home-screen shortcuts, with their icons.',
               style: TextStyle(color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
@@ -90,8 +136,21 @@ class _PresetsEditorState extends ConsumerState<_PresetsEditor> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
                   children: [
+                    // The icon (also used for its home-screen shortcut).
+                    IconButton(
+                      tooltip: 'Icon',
+                      onPressed: () => _pickIcon(i),
+                      icon: Icon(
+                        kShortcutIcons[iconKeyFor(
+                              QuickPreset(1, '', _rows[i].icon),
+                              i,
+                            )]!
+                            .icon,
+                        color: cs.primary,
+                      ),
+                    ),
                     SizedBox(
-                      width: 90,
+                      width: 80,
                       child: TextField(
                         controller: _rows[i].grams,
                         keyboardType: const TextInputType.numberWithOptions(

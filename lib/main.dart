@@ -96,7 +96,6 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
   /// edited, it's the first three of them, with their names.
   Future<void> _setShortcuts(List<QuickPreset> presets) async {
     final picks = shortcutPresets(presets);
-    const icons = ['egg', 'shake', 'chicken'];
     await _quickActions.setShortcutItems([
       for (var i = 0; i < picks.length; i++)
         ShortcutItem(
@@ -104,7 +103,7 @@ class _ProteinGridAppState extends ConsumerState<ProteinGridApp> {
           // lookup (and old shortcuts still work after the buttons change).
           type: 'log|${picks[i].grams}|${picks[i].label}',
           localizedTitle: shortcutTitle(picks[i]),
-          icon: icons[i],
+          icon: iconKeyFor(picks[i], i),
         ),
       const ShortcutItem(
         type: 'log_custom',

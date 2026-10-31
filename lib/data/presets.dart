@@ -1,24 +1,64 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A one-tap amount on the log sheet, optionally named ("Shake").
 class QuickPreset {
-  const QuickPreset(this.grams, [this.label = '']);
+  const QuickPreset(this.grams, [this.label = '', this.icon = '']);
 
   final double grams;
   final String label;
 
-  Map<String, dynamic> toJson() => {'g': grams, 'l': label};
+  /// A [kShortcutIcons] key, or empty for the default by position.
+  final String icon;
+
+  QuickPreset copyWith({String? icon}) =>
+      QuickPreset(grams, label, icon ?? this.icon);
+
+  Map<String, dynamic> toJson() => {
+    'g': grams,
+    'l': label,
+    if (icon.isNotEmpty) 'i': icon,
+  };
 
   static QuickPreset? fromJson(Object? m) {
     if (m is! Map) return null;
     final g = (m['g'] as num?)?.toDouble();
     if (g == null || g <= 0) return null;
-    return QuickPreset(g, (m['l'] as String?) ?? '');
+    final icon = (m['i'] as String?) ?? '';
+    return QuickPreset(
+      g,
+      (m['l'] as String?) ?? '',
+      kShortcutIcons.containsKey(icon) ? icon : '',
+    );
   }
 }
+
+/// Icons a quick button (and its home-screen shortcut) can use. Keys are the
+/// bundled image names: iOS Assets.xcassets and Android drawables, made by
+/// tool/shortcut_icons/make_icons.py.
+const kShortcutIcons = <String, ({String name, IconData icon})>{
+  'egg': (name: 'Egg', icon: Icons.egg),
+  'shake': (name: 'Shake', icon: Icons.local_drink),
+  'chicken': (name: 'Meal', icon: Icons.restaurant),
+  'pg_kebab': (name: 'Meat', icon: Icons.kebab_dining),
+  'pg_fish': (name: 'Fish', icon: Icons.set_meal),
+  'pg_bowl': (name: 'Bowl', icon: Icons.ramen_dining),
+  'pg_burger': (name: 'Burger', icon: Icons.lunch_dining),
+  'pg_dessert': (name: 'Dessert', icon: Icons.icecream),
+  'pg_cookie': (name: 'Snack', icon: Icons.cookie),
+  'pg_coffee': (name: 'Coffee', icon: Icons.coffee),
+  'pg_gym': (name: 'Gym', icon: Icons.fitness_center),
+  'pg_bolt': (name: 'Bolt', icon: Icons.bolt),
+};
+
+const _defaultIcons = ['egg', 'shake', 'chicken'];
+
+/// The icon key for the button at [index]: its own, else egg/shake/meal.
+String iconKeyFor(QuickPreset p, int index) =>
+    p.icon.isNotEmpty ? p.icon : _defaultIcons[index % _defaultIcons.length];
 
 const kDefaultPresets = [
   QuickPreset(20),
@@ -70,7 +110,7 @@ class PresetsNotifier extends StateNotifier<List<QuickPreset>> {
 /// The long-press home-screen shortcuts (before "Custom amount"): 30/40/50g
 /// with the default buttons, or the first three once they've been edited.
 List<QuickPreset> shortcutPresets(List<QuickPreset> presets) {
-  String key(QuickPreset p) => '${p.grams}|${p.label}';
+  String key(QuickPreset p) => '${p.grams}|${p.label}|${p.icon}';
   final edited =
       presets.length != kDefaultPresets.length ||
       [

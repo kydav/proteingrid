@@ -278,15 +278,24 @@ class _PresetChip extends StatelessWidget {
           color: cs.primaryContainer,
           borderRadius: BorderRadius.circular(50),
         ),
-        child: Text(
-          preset.label.isEmpty
-              ? '${preset.grams.toStringAsFixed(0)}g'
-              : '${preset.label} · ${preset.grams.toStringAsFixed(0)}g',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            color: cs.onPrimaryContainer,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (kShortcutIcons[preset.icon] case final icon?) ...[
+              Icon(icon.icon, size: 16, color: cs.onPrimaryContainer),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              preset.label.isEmpty
+                  ? '${preset.grams.toStringAsFixed(0)}g'
+                  : '${preset.label} · ${preset.grams.toStringAsFixed(0)}g',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: cs.onPrimaryContainer,
+              ),
+            ),
+          ],
         ),
       ),
     );

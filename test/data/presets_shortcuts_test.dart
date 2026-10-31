@@ -23,4 +23,24 @@ void main() {
       'Log 35g',
     ]);
   });
+
+  test('a button keeps its icon through save/load, and unknown icons drop', () {
+    final saved = const QuickPreset(40, 'Shake', 'pg_bolt').toJson();
+    expect(QuickPreset.fromJson(saved)?.icon, 'pg_bolt');
+    expect(QuickPreset.fromJson({'g': 40, 'i': 'nope'})?.icon, '');
+  });
+
+  test('icons default by position, and changing one counts as an edit', () {
+    expect(iconKeyFor(const QuickPreset(30), 0), 'egg');
+    expect(iconKeyFor(const QuickPreset(30), 2), 'chicken');
+    expect(iconKeyFor(const QuickPreset(30, '', 'pg_fish'), 0), 'pg_fish');
+    final iconOnly = [
+      kDefaultPresets.first.copyWith(icon: 'pg_bolt'),
+      ...kDefaultPresets.skip(1),
+    ];
+    expect(shortcutPresets(iconOnly).first.icon, 'pg_bolt');
+    for (final key in kShortcutIcons.keys) {
+      expect(key, matches(RegExp(r'^[a-z_]+$'))); // valid Android resource
+    }
+  });
 }

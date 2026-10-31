@@ -2,4 +2,4 @@
 <!-- quick_actions finds shortcut icons by name at runtime, so resource
      shrinking can't see they're used. Keep them. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/egg,@drawable/shake,@drawable/chicken,@drawable/plus" />
+    tools:keep="@drawable/egg,@drawable/shake,@drawable/chicken,@drawable/plus,@drawable/pg_*" />
