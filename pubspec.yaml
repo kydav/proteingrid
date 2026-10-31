@@ -17,7 +17,7 @@ dependencies:
   hive_flutter: ^1.1.0
   in_app_review: ^2.0.12
   intl: ^0.20.2
-  purchases_flutter: ^8.0.0
+  purchases_flutter: ^11.0.0
   quick_actions: ^1.0.7
   share_plus: ^10.1.4
   shared_preferences: ^2.3.3

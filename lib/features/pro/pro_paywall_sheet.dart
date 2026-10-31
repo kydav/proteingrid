@@ -127,8 +127,10 @@ class _ProPaywallSheetState extends ConsumerState<_ProPaywallSheet> {
       _error = null;
     });
     try {
-      final info = await Purchases.purchasePackage(pkg);
-      if (info.entitlements.active.containsKey(kProEntitlement)) {
+      final result = await Purchases.purchase(PurchaseParams.package(pkg));
+      if (result.customerInfo.entitlements.active.containsKey(
+        kProEntitlement,
+      )) {
         await HapticFeedback.heavyImpact();
         if (mounted) Navigator.of(context).pop(true);
       }
