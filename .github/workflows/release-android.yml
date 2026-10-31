@@ -44,7 +44,9 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: flutter build appbundle --release
+        # Play needs a new version code on every upload; the run number always
+        # goes up, so no pubspec bump is needed for a new build.
+        run: flutter build appbundle --release --build-number=${{ github.run_number }}
 
       - name: Upload to Play Store (internal track)
         if: ${{ !inputs.skip_upload }}
