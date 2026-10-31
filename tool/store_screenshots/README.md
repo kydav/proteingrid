@@ -14,4 +14,6 @@
 3. Download `PressStart2P.ttf` and `VT323.ttf` (Google Fonts) next to it.
 4. Run `python3 make.py` (needs Pillow). Output lands in `out/6.9`, `out/6.5` and `out/6.3`.
 
+iPad: put the six iPad 13" shots in `ipad/raw0-5.png` (0 Neon Vector, 1 Arcade, 2 home menu, 3 Block Meter goal hit, 4 log sheet, 5 History) and run `python3 make_ipad.py` → `out/ipad` (2064×2752). `banners.py` makes the App Store header (3840×1646) and search image (1920×1280).
+
 Raw shots, fonts and output are gitignored.
